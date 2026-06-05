@@ -1,0 +1,25 @@
+node_modules/
+.pnpm-store/
+.env
+.env.*
+!.env.example
+dist/
+.next/
+next-env.d.ts
+.turbo/
+coverage/
+*.tsbuildinfo
+.DS_Store
+.context/
+.claude/settings.local.json
+.playwright-mcp/
+
+# Turborepo
+.turbo
+.turbo-cache/
+
+# Vitest config transpile cache (left behind when the process is killed)
+*.timestamp-*.mjs
+
+# Playwright screenshots dumped to repo root during dev
+/*.png

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git *)",
+      "Bash(ls *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm --filter * test*)"
+    ],
+    "deny": ["Bash(rm -rf /)", "Bash(git push --force *)"]
+  },
+  "enabledPlugins": {}
+}

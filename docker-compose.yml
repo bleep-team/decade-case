@@ -1,0 +1,72 @@
+# Reproducible local stack: Postgres + migrate/seed + web + Inngest dev server.
+#   docker compose up --build
+# Then open http://localhost:3000 (app) and http://localhost:8288 (Inngest dev).
+#
+# Clerk keys are read from the host env (or fall back to placeholders that let
+# the build succeed). Provide real keys for working auth:
+#   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=... CLERK_SECRET_KEY=... docker compose up --build
+
+x-build-args: &build-args
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-pk_test_Y2xlcmsuZXhhbXBsZS5jb20k}
+  CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-sk_test_placeholder}
+  DATABASE_URL: postgres://decade:decade@postgres:5432/decade
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: decade
+      POSTGRES_PASSWORD: decade
+      POSTGRES_DB: decade
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U decade -d decade']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      args: *build-args
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://decade:decade@postgres:5432/decade
+    command: sh -c "pnpm --filter @decade/db db:migrate && pnpm --filter @decade/db db:seed && pnpm --filter @decade/db db:seed-dev"
+    restart: 'no'
+
+  web:
+    image: decade-exchange:local
+    build:
+      context: .
+      args: *build-args
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgres://decade:decade@postgres:5432/decade
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-pk_test_Y2xlcmsuZXhhbXBsZS5jb20k}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-sk_test_placeholder}
+      INNGEST_DEV: '1'
+      INNGEST_BASE_URL: http://inngest:8288
+    ports:
+      - '3000:3000'
+
+  inngest:
+    image: inngest/inngest:latest
+    command: ['inngest', 'dev', '-u', 'http://web:3000/api/inngest']
+    ports:
+      - '8288:8288'
+    depends_on:
+      web:
+        condition: service_started
+
+volumes:
+  pgdata:
