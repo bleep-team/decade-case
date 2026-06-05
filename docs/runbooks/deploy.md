@@ -57,12 +57,16 @@ Migrations run from `.github/workflows/deploy.yml` on push to `main` when
 
 - `DATABASE_URL` = Neon **unpooled** connection string (DDL wants a direct session).
 
-Then seed reference data once (locally or via a one-off):
+**Seeding is automatic** — no manual step:
 
-```bash
-DATABASE_URL=<unpooled> pnpm --filter @decade/db db:seed       # stocks
-# optional demo brokers: pnpm --filter @decade/db db:seed-dev
-```
+- **Reference stocks** are seeded by migration `0001_seed_stocks.sql`, so any
+  migrated database (every Neon branch) is tradeable.
+- **Demo brokers** (`…a1` seller / `…b2` buyer) are seeded by `db:seed-dev`, which
+  the deploy workflow runs after migrating. This is a stopgap until brokers are
+  provisioned from Clerk sign-ups.
+
+> Each Neon **branch** (production vs development, both under the `decade-case`
+> project) is an independent database, so each is seeded on its own first migrate.
 
 ## 4. Inngest
 
@@ -70,6 +74,17 @@ Install the **Inngest Vercel integration** and link the project. It sets
 `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY` in Vercel and auto-syncs the app at
 `https://decade.usebleep.com/api/inngest` on each deploy, registering the
 `match-order`, `expire-orders`, and `deliver-webhook` functions.
+
+> **Sync troubleshooting.** In production the app sends events to Inngest Cloud,
+> which only runs functions for a **registered** app. If orders submit but never
+> match (they stay `open`), the app isn't synced — trigger it manually:
+>
+> ```bash
+> curl -X PUT https://decade.usebleep.com/api/inngest   # -> {"Successfully registered","modified":true}
+> ```
+>
+> A plain `GET /api/inngest` returning `{"message":"Unauthorized"}` is **normal**
+> in production (the introspection is locked), not a failure.
 
 ## 5. Clerk
 
