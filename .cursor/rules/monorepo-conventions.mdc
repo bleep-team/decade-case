@@ -1,0 +1,22 @@
+---
+description: "Core monorepo conventions for the Decade Exchange project"
+alwaysApply: true
+---
+
+# Decade Exchange Monorepo Conventions
+
+- Packages live in `packages/<name>/`, published as `@decade/<name>`
+- TypeScript by default; named exports, explicit return types on public functions
+- Cross-package imports use package names, not relative paths
+- Money is integer **cents** (`Cents`) everywhere — never floats
+- Files under ~300 lines; no `any` without justification
+- Shared configs (tsconfig, eslint, prettier) live at the repo root
+- Build tool: tsup (ESM + DTS). Test runner: Vitest
+- Internal libs use `.js` import specifiers; `@decade/ui` (transpiled by Next, not
+  built) uses extensionless imports
+- See `UBIQUITOUS_LANGUAGE.md` for canonical domain terms
+
+## Packages
+
+`typescript-config`, `eslint-config`, `types`, `logger`, `matching-engine`, `db`,
+`auth`, `ui`, `exchange-runtime`, `mcp` (+ `apps/web`).

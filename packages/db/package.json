@@ -1,0 +1,43 @@
+{
+  "name": "@decade/db",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Drizzle ORM schema, migrations, and client for Neon Postgres",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/migrate.ts",
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx src/seed.cli.ts",
+    "db:seed-dev": "tsx src/seed-dev.cli.ts"
+  },
+  "dependencies": {
+    "@decade/types": "workspace:*",
+    "drizzle-orm": "^0.38.0",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@decade/eslint-config": "workspace:*",
+    "@decade/typescript-config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "dotenv": "^17.4.1",
+    "drizzle-kit": "^0.30.0",
+    "eslint": "^9.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.7.0",
+    "vitest": "^3.1.0"
+  }
+}

@@ -1,0 +1,16 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/coverage
+**/*.tsbuildinfo
+.git
+.github
+.context
+.sandcastle
+**/.env
+**/.env.*
+!**/.env.example
+*.md
+**/*.log
+.DS_Store

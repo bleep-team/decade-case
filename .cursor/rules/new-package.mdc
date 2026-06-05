@@ -1,0 +1,15 @@
+---
+description: "Instructions for creating a new package in the monorepo"
+alwaysApply: false
+---
+
+# Creating a New Package
+
+1. Create directory: `packages/<name>/src/`
+2. Add `package.json` with name `@decade/<name>`, using tsup for builds and Vitest for tests
+3. Add `tsconfig.json` extending `@decade/typescript-config/library.json`
+4. Add `README.md` with a brief description
+5. Create `src/index.ts` as the entry point (named exports only)
+6. Create `src/index.test.ts` with at least one Vitest test
+7. Add the directory name to `commitlint.config.js` → `scope-enum`
+8. Run `pnpm install` — the package is auto-detected by workspace globs

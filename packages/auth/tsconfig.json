@@ -1,0 +1,10 @@
+{
+  "extends": "@decade/typescript-config/react.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "composite": false,
+    "incremental": false
+  },
+  "include": ["src"]
+}

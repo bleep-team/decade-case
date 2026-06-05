@@ -1,0 +1,6 @@
+{
+  "// note": "Standalone typecheck config. next build rewrites tsconfig.json to include .next/types, which only exists after a build; this variant typechecks src/ independently of build state.",
+  "extends": "./tsconfig.json",
+  "include": ["src", "next-env.d.ts"],
+  "exclude": ["node_modules", ".next"]
+}

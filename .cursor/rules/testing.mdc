@@ -1,0 +1,14 @@
+---
+description: "Testing standards for the Decade Exchange monorepo"
+globs: ["**/*.test.ts", "**/*.test.tsx"]
+alwaysApply: false
+---
+
+# Testing Standards
+
+- Test runner: Vitest; colocate tests next to source as `*.test.ts`
+- Use descriptive test names that read as sentences
+- Every package must have tests; the `@decade/matching-engine` package is held to
+  a high bar — its tests encode every example in the engineering brief
+- Run `pnpm test` (all) or `pnpm --filter @decade/<name> test` (one package)
+- Keep the matching engine pure so it can be tested without a database or clock

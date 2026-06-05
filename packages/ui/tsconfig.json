@@ -1,0 +1,7 @@
+{
+  "extends": "@decade/typescript-config/react.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src"]
+}
