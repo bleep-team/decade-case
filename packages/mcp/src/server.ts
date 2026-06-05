@@ -14,15 +14,8 @@ interface ApiResult {
   text: string
 }
 
-/**
- * Build an MCP server whose tools sit on top of the exchange REST API. The app
- * mounts this behind a Streamable-HTTP transport at `/api/mcp`, letting an LLM
- * client submit orders and read the book / price / balances.
- */
-export function createExchangeMcpServer(config: ExchangeMcpConfig): McpServer {
-  const server = new McpServer({ name: 'decade-exchange', version: '0.0.1' })
-
-  async function request(path: string, init?: RequestInit): Promise<ApiResult> {
+function createRequester(config: ExchangeMcpConfig) {
+  return async function request(path: string, init?: RequestInit): Promise<ApiResult> {
     const headers = new Headers(init?.headers)
     headers.set('content-type', 'application/json')
     if (config.apiKey) {
@@ -31,18 +24,27 @@ export function createExchangeMcpServer(config: ExchangeMcpConfig): McpServer {
     const response = await fetch(new URL(path, config.baseUrl), { ...init, headers })
     return { ok: response.ok, status: response.status, text: await response.text() }
   }
+}
 
-  function asContent(result: ApiResult) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: result.ok ? result.text : `Error ${result.status}: ${result.text}`,
-        },
-      ],
-      isError: !result.ok,
-    }
+function asContent(result: ApiResult) {
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: result.ok ? result.text : `Error ${result.status}: ${result.text}`,
+      },
+    ],
+    isError: !result.ok,
   }
+}
+
+/**
+ * Register the exchange tools on an MCP server. Shared by `createExchangeMcpServer`
+ * (standalone) and the app's `/api/mcp` Streamable-HTTP transport, so both expose
+ * exactly the same tool surface over the REST API.
+ */
+export function registerExchangeTools(server: McpServer, config: ExchangeMcpConfig): void {
+  const request = createRequester(config)
 
   server.tool(
     'submit_order',
@@ -80,6 +82,14 @@ export function createExchangeMcpServer(config: ExchangeMcpConfig): McpServer {
     brokerIdShape,
     async ({ brokerId }) => asContent(await request(`/api/brokers/${brokerId}/balance`)),
   )
+}
 
+/**
+ * Build a standalone MCP server wired to the exchange REST API. The app mounts the
+ * same tools behind a Streamable-HTTP transport at `/api/mcp` via `registerExchangeTools`.
+ */
+export function createExchangeMcpServer(config: ExchangeMcpConfig): McpServer {
+  const server = new McpServer({ name: 'decade-exchange', version: '0.0.1' })
+  registerExchangeTools(server, config)
   return server
 }
