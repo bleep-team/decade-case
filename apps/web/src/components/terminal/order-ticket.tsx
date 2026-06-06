@@ -67,7 +67,7 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
         <CardTitle>Order ticket</CardTitle>
       </CardHeader>
       <CardContent>
-        <form className="space-y-4" noValidate onSubmit={handleSubmit}>
+        <form className="space-y-3" noValidate onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-2" role="group" aria-label="Side">
             <Button
               type="button"
@@ -106,51 +106,58 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
             </Button>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="ticket-quantity">Quantity</Label>
-            <Input
-              id="ticket-quantity"
-              type="number"
-              min={1}
-              step={1}
-              inputMode="numeric"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="ticket-quantity">Quantity</Label>
+              <Input
+                id="ticket-quantity"
+                type="number"
+                min={1}
+                step={1}
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="0"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ticket-price">Price (USD)</Label>
+              <Input
+                id="ticket-price"
+                type="number"
+                min={0}
+                step="0.01"
+                inputMode="decimal"
+                autoComplete="off"
+                disabled={isMarket}
+                value={isMarket ? '' : price}
+                placeholder={isMarket ? 'Market' : '0.00'}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="ticket-price">Price (USD)</Label>
-            <Input
-              id="ticket-price"
-              type="number"
-              min={0}
-              step="0.01"
-              inputMode="decimal"
-              disabled={isMarket}
-              value={isMarket ? '' : price}
-              placeholder={isMarket ? 'Market' : undefined}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ticket-expiry">Expiry</Label>
-            <Input
-              id="ticket-expiry"
-              type="datetime-local"
-              value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ticket-owner">Owner document</Label>
-            <Input
-              id="ticket-owner"
-              value={ownerDocument}
-              onChange={(e) => setOwnerDocument(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="ticket-expiry">Expiry</Label>
+              <Input
+                id="ticket-expiry"
+                type="datetime-local"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ticket-owner">Owner document</Label>
+              <Input
+                id="ticket-owner"
+                autoComplete="off"
+                spellCheck={false}
+                value={ownerDocument}
+                onChange={(e) => setOwnerDocument(e.target.value)}
+              />
+            </div>
           </div>
 
           <Button type="submit" className="w-full">
