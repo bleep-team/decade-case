@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import { createDbClient } from './client.js'
-import { stocks } from './schema/index.js'
+import { MOCK_BROKERS, SEED_STOCKS, seedMarketData } from './seed.js'
 
 const connectionString = process.env['DATABASE_URL']
 if (!connectionString) {
@@ -10,16 +10,12 @@ if (!connectionString) {
 
 const db = createDbClient(connectionString)
 
-const SYMBOLS: Array<{ symbol: string; name: string }> = [
-  { symbol: 'AAPL', name: 'Apple Inc.' },
-  { symbol: 'TSLA', name: 'Tesla, Inc.' },
-  { symbol: 'AMZN', name: 'Amazon.com, Inc.' },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
-  { symbol: 'MSFT', name: 'Microsoft Corporation' },
-]
-
-console.info('Seeding reference stocks…')
-await db.insert(stocks).values(SYMBOLS).onConflictDoNothing()
-console.info(`Seeded ${SYMBOLS.length} stocks.`)
+console.info('Seeding reference stocks + reference prices and house market-maker brokers…')
+await seedMarketData(db)
+console.info(`Seeded ${SEED_STOCKS.length} stocks with reference prices.`)
+console.info(`Seeded ${MOCK_BROKERS.length} is_mock house brokers:`)
+for (const broker of MOCK_BROKERS) {
+  console.info(`  ${broker.name} → ${broker.id}`)
+}
 
 process.exit(0)
