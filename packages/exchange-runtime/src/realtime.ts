@@ -1,5 +1,5 @@
 import { channel, topic, type Realtime } from '@inngest/realtime'
-import type { OrderSide, OrderStatus } from '@decade/types'
+import type { Order, OrderSide, OrderStatus } from '@decade/types'
 import type { MatchResult } from '@decade/matching-engine'
 
 /** One execution as it concerns a single broker (the side it traded on). */
@@ -83,7 +83,7 @@ export function deriveBrokerUpdates(
   }
 
   const updateFor = (
-    order: MatchResult['takerOrder'],
+    order: Order,
     fills: FillInfo[],
   ): { brokerId: string; update: BrokerUpdate } => ({
     brokerId: order.brokerId,
