@@ -11,15 +11,29 @@ export interface PriceDisplayProps {
   deltaCents: number | null
 }
 
+type Direction = 'up' | 'down' | 'flat'
+
+const TREND_ICON: Record<Direction, typeof Minus> = {
+  up: TrendingUp,
+  down: TrendingDown,
+  flat: Minus,
+}
+const DELTA_SIGN: Record<Direction, string> = { up: '+', down: '-', flat: '' }
+
+/** A null or zero delta reads as flat; otherwise the sign picks the direction. */
+function priceDirection(deltaCents: number | null): Direction {
+  if (deltaCents == null || deltaCents === 0) return 'flat'
+  return deltaCents > 0 ? 'up' : 'down'
+}
+
 /**
  * The current price and its delta. The price itself stays neutral (foreground);
  * the delta carries the `--gain` / `--loss` data tokens and a trend icon so a
  * rising or falling market reads at a glance.
  */
 export function PriceDisplay({ symbol, priceCents, deltaCents }: PriceDisplayProps) {
-  const direction =
-    deltaCents == null ? 'flat' : deltaCents > 0 ? 'up' : deltaCents < 0 ? 'down' : 'flat'
-  const Icon = direction === 'up' ? TrendingUp : direction === 'down' ? TrendingDown : Minus
+  const direction = priceDirection(deltaCents)
+  const Icon = TREND_ICON[direction]
 
   return (
     <Card>
@@ -44,14 +58,7 @@ export function PriceDisplay({ symbol, priceCents, deltaCents }: PriceDisplayPro
             )}
           >
             <Icon className="size-4" aria-hidden="true" />
-            {deltaCents != null ? (
-              <>
-                {deltaCents > 0 ? '+' : deltaCents < 0 ? '-' : ''}
-                {formatUsd(Math.abs(deltaCents))}
-              </>
-            ) : (
-              '—'
-            )}
+            {deltaCents != null ? `${DELTA_SIGN[direction]}${formatUsd(Math.abs(deltaCents))}` : '—'}
           </span>
         </div>
       </CardContent>
