@@ -7,23 +7,18 @@ import {
   runMarketMaker,
 } from '../run-market-maker.js'
 
-/** order/submitted events whose new mock orders feed back to the engine and matcher. */
-function submittedEvents(symbol: string, orderIds: string[]) {
-  return orderIds.map((orderId) => ({
-    name: 'order/submitted' as const,
-    data: { orderId, symbol },
-  }))
-}
-
 /**
  * Reactive market-maker: on a user order submission, post a fresh two-sided mock
  * ladder for that symbol so a solo broker always has real liquidity to match
  * against. Serialized on the SAME per-symbol concurrency key as matching and
  * cancellation, so the mock ladder is posted race-free against fills.
  *
- * Skips its own quotes: re-quoting emits `order/submitted` for the new mock
- * orders (so the engine matches them), which would otherwise re-trigger the
- * market-maker forever.
+ * Mock quotes are *resting liquidity* (makers): they are inserted as `open` rows
+ * and get matched when a taker (a user order) arrives. They deliberately do NOT
+ * emit `order/submitted` — doing so spawned a `match-order` run per quote which,
+ * against the per-symbol `limit: 1` matcher, flooded the queue with thousands of
+ * runs and starved real user orders. The `isMockOrder` guard remains as a
+ * backstop so any stray mock-sourced submission never triggers a re-quote loop.
  */
 export const marketMakerFn = inngest.createFunction(
   {
@@ -41,10 +36,6 @@ export const marketMakerFn = inngest.createFunction(
     }
 
     const result = await step.run('requote', () => runMarketMaker(getDb(), symbol))
-    if (result.submittedOrderIds.length > 0) {
-      await step.sendEvent('post-mock-liquidity', submittedEvents(symbol, result.submittedOrderIds))
-    }
-
     return { symbol, requoted: true, posted: result.submittedOrderIds.length }
   },
 )
@@ -52,7 +43,9 @@ export const marketMakerFn = inngest.createFunction(
 /**
  * Ambient market-maker: once a minute, gently drift each symbol's reference
  * price and re-quote its mock ladder, so the market keeps moving and stale
- * quotes are replaced even when no one is trading.
+ * quotes are replaced even when no one is trading. The fresh quotes rest as
+ * liquidity for the next taker; like the reactive pass, they do not emit
+ * `order/submitted`.
  */
 export const marketMakerCronFn = inngest.createFunction(
   { id: 'market-maker-cron', retries: 2 },
@@ -69,10 +62,7 @@ export const marketMakerCronFn = inngest.createFunction(
         await driftReference(getDb(), symbol, seed)
         return runMarketMaker(getDb(), symbol)
       })
-      if (result.submittedOrderIds.length > 0) {
-        await step.sendEvent(`post-${symbol}`, submittedEvents(symbol, result.submittedOrderIds))
-        posted += result.submittedOrderIds.length
-      }
+      posted += result.submittedOrderIds.length
     }
 
     return { symbols: symbols.length, posted }
