@@ -22,6 +22,7 @@
     "@decade/logger": "workspace:*",
     "@decade/matching-engine": "workspace:*",
     "@decade/types": "workspace:*",
+    "@inngest/realtime": "^0.4.0",
     "drizzle-orm": "^0.38.0",
     "inngest": "^3.0.0"
   },
