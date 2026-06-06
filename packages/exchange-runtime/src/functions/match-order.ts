@@ -1,6 +1,7 @@
 import { inngest } from '../client.js'
 import { getDb } from '../db.js'
-import { runMatch } from '../run-match.js'
+import { executeMatch } from '../run-match.js'
+import { publishSettlement } from '../publish-settlement.js'
 
 export const matchOrderFn = inngest.createFunction(
   {
@@ -12,16 +13,25 @@ export const matchOrderFn = inngest.createFunction(
     retries: 3,
   },
   { event: 'order/submitted' },
-  async ({ event, step }) => {
+  async ({ event, step, publish }) => {
     const { orderId } = event.data
 
-    const tradeIds = await step.run('match-and-persist', () => runMatch(getDb(), orderId))
+    const { result, tradeIds } = await step.run('match-and-persist', () =>
+      executeMatch(getDb(), orderId),
+    )
 
     if (tradeIds.length > 0) {
       await step.sendEvent(
         'fan-out-executions',
         tradeIds.map((tradeId) => ({ name: 'trade/executed' as const, data: { tradeId } })),
       )
+
+      // Push private fill/order/balance updates to each affected broker's
+      // channel. Non-durable: it is best-effort UI freshness, and the terminal
+      // also polls, so a dropped publish degrades cleanly.
+      if (result) {
+        await publishSettlement(publish, getDb(), result, tradeIds)
+      }
     }
 
     return { orderId, trades: tradeIds.length }

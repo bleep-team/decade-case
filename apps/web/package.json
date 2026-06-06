@@ -20,6 +20,7 @@
     "@decade/mcp": "workspace:*",
     "@decade/types": "workspace:*",
     "@decade/ui": "workspace:*",
+    "@inngest/realtime": "^0.4.0",
     "drizzle-orm": "^0.38.0",
     "inngest": "^3.0.0",
     "lenis": "^1.3.23",
