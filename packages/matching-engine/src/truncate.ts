@@ -1,5 +1,5 @@
 import type { Cents, Order } from '@decade/types'
-import type { MatchResult } from './match.js'
+import type { MatchResult, ProposedTrade } from './match.js'
 
 /** Notional cost of `quantity` shares at `price` cents each (integer cents). */
 function cost(price: Cents, quantity: number): Cents {
@@ -34,7 +34,7 @@ export function truncateToBudget(result: MatchResult, cashCents: Cents): MatchRe
   const trades = result.trades
   const restingOrders = result.filledRestingOrders
 
-  const keptTrades = []
+  const keptTrades: ProposedTrade[] = []
   const keptRestingOrders: Order[] = []
   let spent = 0
   let filledQuantity = 0
