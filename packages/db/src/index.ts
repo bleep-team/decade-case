@@ -28,6 +28,7 @@ export {
 
 export { createDbClient } from './client.js'
 export type { Database } from './client.js'
+export { seedStocks, seedMockBrokers, seedMarketData, SEED_STOCKS, MOCK_BROKERS } from './seed.js'
 export { toDomainOrder } from './mappers.js'
 export type { OrderRow } from './mappers.js'
 
