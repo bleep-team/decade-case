@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server'
 import type { Broker } from '@decade/db'
 import { resolveBrokerByApiKey, resolveOrCreateBroker, UnauthorizedError } from '@decade/auth'
 import { requireUserId } from '@decade/auth/server'
@@ -38,4 +39,22 @@ export async function resolveActingBroker(request: Request): Promise<Broker> {
 
   const userId = await requireUserId()
   return resolveOrCreateBroker(db, userId)
+}
+
+/**
+ * Resolve the acting broker, turning an auth failure into a 401 response the
+ * route handler can return as-is. Returns either the broker or a `NextResponse`;
+ * callers branch with `instanceof NextResponse`. Non-auth errors still throw.
+ */
+export async function resolveActingBrokerOr401(
+  request: Request,
+): Promise<Broker | NextResponse> {
+  try {
+    return await resolveActingBroker(request)
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+    }
+    throw error
+  }
 }

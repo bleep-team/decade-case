@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
 import { desc, eq } from 'drizzle-orm'
-import { UnauthorizedError } from '@decade/auth'
 import { orders } from '@decade/db'
 import { getDb, inngest } from '@decade/exchange-runtime'
-import { resolveActingBroker } from '@/lib/broker-identity'
+import { resolveActingBrokerOr401 } from '@/lib/broker-identity'
 import { parsePagination } from '@/lib/pagination'
 import { submitOrderSchema } from '@/lib/validation'
 
@@ -11,14 +10,9 @@ export const dynamic = 'force-dynamic'
 
 /** List the authenticated broker's own orders, newest first (paginated). */
 export async function GET(request: Request) {
-  let broker
-  try {
-    broker = await resolveActingBroker(request)
-  } catch (error) {
-    if (error instanceof UnauthorizedError) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-    }
-    throw error
+  const broker = await resolveActingBrokerOr401(request)
+  if (broker instanceof NextResponse) {
+    return broker
   }
 
   const { limit, offset } = parsePagination(request)
@@ -64,14 +58,9 @@ export async function POST(request: Request) {
   }
 
   // The acting broker comes from the authenticated identity, never the body.
-  let broker
-  try {
-    broker = await resolveActingBroker(request)
-  } catch (error) {
-    if (error instanceof UnauthorizedError) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-    }
-    throw error
+  const broker = await resolveActingBrokerOr401(request)
+  if (broker instanceof NextResponse) {
+    return broker
   }
 
   const body = parsed.data
