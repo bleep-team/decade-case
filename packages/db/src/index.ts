@@ -3,6 +3,7 @@ import {
   stocks,
   orders,
   trades,
+  positions,
   webhookEndpoints,
   webhookDeliveries,
   orderSide,
@@ -16,6 +17,7 @@ export {
   stocks,
   orders,
   trades,
+  positions,
   webhookEndpoints,
   webhookDeliveries,
   orderSide,
@@ -33,5 +35,7 @@ export type Broker = typeof brokers.$inferSelect
 export type NewBroker = typeof brokers.$inferInsert
 export type NewOrder = typeof orders.$inferInsert
 export type TradeRow = typeof trades.$inferSelect
+export type Position = typeof positions.$inferSelect
+export type NewPosition = typeof positions.$inferInsert
 export type WebhookEndpointRow = typeof webhookEndpoints.$inferSelect
 export type StockRow = typeof stocks.$inferSelect
