@@ -1,11 +1,56 @@
 import { NextResponse } from 'next/server'
+import { desc, eq } from 'drizzle-orm'
 import { UnauthorizedError } from '@decade/auth'
 import { orders } from '@decade/db'
 import { getDb, inngest } from '@decade/exchange-runtime'
 import { resolveActingBroker } from '@/lib/broker-identity'
+import { parsePagination } from '@/lib/pagination'
 import { submitOrderSchema } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
+
+/** List the authenticated broker's own orders, newest first (paginated). */
+export async function GET(request: Request) {
+  let broker
+  try {
+    broker = await resolveActingBroker(request)
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+    }
+    throw error
+  }
+
+  const { limit, offset } = parsePagination(request)
+  const db = getDb()
+  const rows = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.brokerId, broker.id))
+    .orderBy(desc(orders.sequence))
+    .limit(limit)
+    .offset(offset)
+
+  return NextResponse.json({
+    brokerId: broker.id,
+    limit,
+    offset,
+    orders: rows.map((row) => ({
+      orderId: row.id,
+      brokerId: row.brokerId,
+      ownerDocument: row.ownerDocument,
+      symbol: row.symbol,
+      side: row.side,
+      type: row.type,
+      limitPriceCents: row.limitPriceCents,
+      quantity: row.quantity,
+      remaining: row.remaining,
+      status: row.status,
+      createdAt: row.createdAt,
+      expiresAt: row.expiresAt,
+    })),
+  })
+}
 
 /** Submit a bid/ask order. Returns the order id the broker uses to poll status. */
 export async function POST(request: Request) {
