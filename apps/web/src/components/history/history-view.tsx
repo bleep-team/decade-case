@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@decade/ui/components/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@decade/ui/components/tabs'
+import { formatTime } from '@/lib/format-time'
 
 /** One of the broker's orders, as the history page lists it. */
 export interface HistoryOrderRow {
@@ -52,11 +53,6 @@ export interface HistoryViewProps {
   onNextPage: () => void
   /** Initial tab; defaults to Orders. */
   defaultTab?: 'orders' | 'trades'
-}
-
-/** Render a timestamp as a compact, locale-stable UTC string. */
-function formatTime(iso: string): string {
-  return iso.replace('T', ' ').replace(/\.\d+Z$/, 'Z')
 }
 
 /** Previous / page / Next controls shared by both tabs. */

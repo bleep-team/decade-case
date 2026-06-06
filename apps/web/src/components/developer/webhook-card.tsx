@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@decade/ui/components/table'
+import { formatTime } from '@/lib/format-time'
 
 /** One recent webhook delivery attempt, as the developer page lists it. */
 export interface DeliveryRow {
@@ -38,11 +39,6 @@ export interface WebhookCardProps {
   deliveries: DeliveryRow[]
   /** Called with the form payload when the broker saves the endpoint. */
   onSave: (payload: WebhookPayload) => void | Promise<void>
-}
-
-/** Compact, locale-stable UTC timestamp. */
-function formatTime(iso: string): string {
-  return iso.replace('T', ' ').replace(/\.\d+Z$/, 'Z')
 }
 
 /**
