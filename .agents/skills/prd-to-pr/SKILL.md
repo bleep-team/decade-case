@@ -171,7 +171,6 @@ The hint table below maps changed paths to docs that frequently go stale. It **f
 
 - Fix every HIGH / correctness finding now: stale enumerations (package tables, architecture diagrams, identity/surface tables), missing env vars, wrong invariants. These are not optional — they are the rot a path-lookup misses.
 - For discretionary net-new work (a full guide, an ADR), present the recommendation and let the user decide to write it now or defer — an explicit, evidence-backed call, never a blanket "skip".
-- After any edits, run `pnpm --filter @bleep/docs-tools test` so the relative-link validator catches paths broken by a rename or a new file.
 
 **For ADRs:** the next number is one greater than the highest existing — `ls docs/adr/0*.md | tail -1` shows the current max. Filename format is `NNNN-<kebab-title>.md` with `NNNN` zero-padded to 4 digits. After writing the ADR, append it to the index table in `docs/adr/README.md`.
 

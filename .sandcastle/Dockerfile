@@ -15,7 +15,7 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
   && apt-get update && apt-get install -y gh \
   && rm -rf /var/lib/apt/lists/*
 
-# Install pnpm via corepack (Bleep is a pnpm monorepo)
+# Install pnpm via corepack (Decade is a pnpm monorepo)
 RUN corepack enable && corepack prepare pnpm@10.33.4 --activate
 
 # Build-args for UID/GID alignment. The host UID is passed by the

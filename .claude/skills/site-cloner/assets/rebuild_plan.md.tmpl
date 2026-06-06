@@ -1,0 +1,104 @@
+> **Non-authoritative.** This rebuild plan is derived from
+> `design-tokens.json` and every `pages/<slug>/sections.json`.
+> If anything here contradicts those JSON files, trust the JSON.
+
+# Rebuild plan — {{site_name}}
+
+This plan is tailored to **`{{target_stack}}`**. It assumes you
+have already read `AGENT_GUIDE.md` and `INDEX.json`.
+
+## Step 1 — Project scaffolding
+
+{{#stack:nextjs-tailwind-shadcn}}
+- Use the App Router with one route per entry in `meta/urls.txt`.
+- Map design tokens into `tailwind.config.ts`:
+  - `theme.colors` ← `design-tokens.json.palette` (group by `roles`).
+  - `theme.fontFamily` ← `design-tokens.json.typography[].font_family`.
+  - `theme.spacing` ← unique tokens from
+    `design-tokens.json.spacing`.
+  - `theme.borderRadius` ← `design-tokens.json.radii`.
+  - `theme.boxShadow` ← `design-tokens.json.shadows`.
+- Add fonts via `next/font/local` from `assets/fonts/` if the
+  inventory is non-empty, otherwise pull the closest match from
+  Google Fonts.
+- shadcn/ui components: install only the primitives required by
+  the captured sections. Resist building a full kit.
+{{/stack}}
+
+{{#stack:vite-react}}
+- One route per entry in `meta/urls.txt` via `react-router`.
+- Tokens become CSS variables in `:root` (one var per palette
+  entry, per spacing step, etc.). Import once in `main.tsx`.
+- Use `vite-plugin-fonts` (or a `@font-face` block) for any local
+  font files in `assets/fonts/`.
+{{/stack}}
+
+{{#stack:astro}}
+- One `src/pages/*.astro` per entry in `meta/urls.txt`.
+- Tokens → `src/styles/tokens.css` as custom properties.
+- Astro components per section; use island hydration only where
+  `observations.md` documents an interaction.
+{{/stack}}
+
+{{#stack:plain-html}}
+- One `.html` file per entry in `meta/urls.txt`, sharing a single
+  `styles.css` with `design-tokens.json` mapped to CSS variables.
+- Self-host fonts from `assets/fonts/` via `@font-face`.
+{{/stack}}
+
+## Step 2 — Section components
+
+For every page, iterate `pages/<slug>/sections.json` in order.
+Each entry tells you:
+
+- `id` — stable identifier; use as the component name.
+- `bbox.<viewport>` — expected dimensions per viewport.
+- `dom_html_byte_range` / `raw_html_byte_range` — slice the HTML
+  files at these offsets to see the source markup.
+- `copy_byte_range` — slice `copy.md` for the text content.
+- `dominant_tokens` — the design tokens observed inside the
+  section. Use these instead of resampling.
+- `screenshot_crops.<viewport>` — visual reference per viewport.
+
+Build one component per section. Re-use the dominant tokens via
+the global token mapping from Step 1.
+
+## Step 3 — Asset wiring
+
+For every asset referenced by a section, look it up in
+`assets/manifest.json` and import / serve it from the local
+path. The manifest's `referencing_pages` field tells you whether
+the asset is shared across pages (move it to a shared layout) or
+page-specific (keep it scoped).
+
+## Step 4 — Motion and micro-interactions
+
+`design-tokens.json.motion` records observed `transition` and
+`animation` values. Apply them at the component level.
+
+For anything that is not a CSS-level transition — scroll
+reveals, hover sequences, view-transition handoffs — read
+`observations.md`. If `observations.md` is empty for a behaviour
+you can see in the screenshots, **stop and ask** before
+inventing motion.
+
+## Step 5 — Cross-check
+
+Before declaring a page done, compare your build to the
+captured screenshot at every viewport:
+
+- `pages/<slug>/desktop.png` should match the desktop build.
+- `pages/<slug>/mobile.png` should match the mobile build.
+
+For each `sections.json[].screenshot_crops.<viewport>`, the
+matching section in your build should look the same.
+
+## Step 6 — What you should NOT do
+
+- **Do not copy assets or copy text verbatim into shipped
+  product code.** The dossier is reference-only — produce
+  original art and original copy.
+- **Do not sample colors or fonts directly from the screenshots.**
+  Use `design-tokens.json` — it has frequency counts and roles.
+- **Do not paste JS from `assets/js-urls.json`** — they are
+  minified framework bundles with no design-reference value.
