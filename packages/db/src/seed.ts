@@ -53,10 +53,12 @@ export async function seedStocks(db: Database): Promise<void> {
     .insert(stocks)
     .values([...SEED_STOCKS])
     .onConflictDoUpdate({
+      // `excluded` is the row proposed for insertion; reference it so the upsert
+      // writes the new name/price on conflict instead of leaving the prior row.
       target: stocks.symbol,
       set: {
-        name: sqlExcluded('name'),
-        referencePriceCents: sqlExcluded('reference_price_cents'),
+        name: sql`excluded.name`,
+        referencePriceCents: sql`excluded.reference_price_cents`,
       },
     })
 }
@@ -73,10 +75,4 @@ export async function seedMockBrokers(db: Database): Promise<void> {
 export async function seedMarketData(db: Database): Promise<void> {
   await seedStocks(db)
   await seedMockBrokers(db)
-}
-
-// `excluded` is the row proposed for insertion; reference it so the upsert writes
-// the new values on conflict. Kept tiny and local to avoid leaking SQL elsewhere.
-function sqlExcluded(column: string) {
-  return sql.raw(`excluded.${column}`)
 }
