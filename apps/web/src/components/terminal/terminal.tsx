@@ -125,6 +125,7 @@ export function Terminal({
     quantity: t.quantity,
   }))
   const holdings: HoldingRow[] = balanceData?.positions ?? []
+  const cashBalanceCents = balanceData?.cashBalanceCents ?? 0
 
   const submit =
     onSubmitOrder ??
@@ -158,7 +159,13 @@ export function Terminal({
             defaultOwnerDocument={defaultOwnerDocument}
             onSubmit={submit}
           />
-          <YouPanel holdings={holdings} orders={orders} fills={fills} onCancel={cancel} />
+          <YouPanel
+            cashBalanceCents={cashBalanceCents}
+            holdings={holdings}
+            orders={orders}
+            fills={fills}
+            onCancel={cancel}
+          />
         </section>
       </div>
     </div>

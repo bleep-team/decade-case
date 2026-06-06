@@ -44,6 +44,8 @@ export interface FillRow {
 }
 
 export interface YouPanelProps {
+  /** The broker's settled cash balance, in integer cents. */
+  cashBalanceCents: number
   holdings: HoldingRow[]
   orders: OrderRow[]
   fills: FillRow[]
@@ -64,6 +66,7 @@ function isCancellable(status: OrderStatus): boolean {
  * `onCancel`; terminal (filled / cancelled / expired / rejected) orders do not.
  */
 export function YouPanel({
+  cashBalanceCents,
   holdings,
   orders,
   fills,
@@ -76,6 +79,12 @@ export function YouPanel({
         <CardTitle>You</CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 flex items-baseline justify-between border-b border-border pb-3">
+          <span className="text-sm text-muted-foreground">Cash</span>
+          <span className="font-mono text-lg font-medium text-foreground">
+            {formatUsd(cashBalanceCents)}
+          </span>
+        </div>
         <Tabs defaultValue={defaultTab}>
           <TabsList>
             <TabsTrigger value="holdings">Holdings</TabsTrigger>

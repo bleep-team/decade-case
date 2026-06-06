@@ -45,6 +45,34 @@ describe('Terminal symbol selection', () => {
     expect(within(market).queryByText('AAPL')).toBeNull()
   })
 
+  it('displays the broker cash balance from the balance endpoint', async () => {
+    // Route the balance poll to a funded broker; other polls stay empty.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString()
+        const body = url.includes('/balance')
+          ? { cashBalanceCents: 100000000, positions: [] }
+          : url.includes('/book')
+            ? { symbol: 'AAPL', bids: [], asks: [] }
+            : {}
+        return { ok: true, json: async () => body }
+      }) as unknown as typeof fetch,
+    )
+
+    render(
+      <Terminal
+        brokerId="broker-1"
+        symbols={['AAPL']}
+        defaultOwnerDocument="DEMO-001"
+        onSubmitOrder={vi.fn()}
+        onCancelOrder={vi.fn()}
+      />,
+    )
+
+    expect(await screen.findByText('$1000000.00')).not.toBeNull()
+  })
+
   it('submits an order for the currently selected symbol', () => {
     const onSubmitOrder = vi.fn()
     render(

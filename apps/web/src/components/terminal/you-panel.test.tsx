@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { formatUsd } from '@decade/types'
 import { YouPanel, type FillRow, type HoldingRow, type OrderRow } from './you-panel'
 
 afterEach(cleanup)
@@ -35,14 +36,44 @@ const fills: FillRow[] = [
 
 describe('YouPanel', () => {
   it('renders Holdings, Orders, and Fills tabs', () => {
-    render(<YouPanel holdings={holdings} orders={orders} fills={fills} onCancel={vi.fn()} />)
+    render(
+      <YouPanel
+        holdings={holdings}
+        orders={orders}
+        fills={fills}
+        onCancel={vi.fn()}
+        cashBalanceCents={0}
+      />,
+    )
     expect(screen.getByRole('tab', { name: /holdings/i })).not.toBeNull()
     expect(screen.getByRole('tab', { name: /orders/i })).not.toBeNull()
     expect(screen.getByRole('tab', { name: /fills/i })).not.toBeNull()
   })
 
+  it('shows the broker cash balance formatted as USD', () => {
+    render(
+      <YouPanel
+        holdings={holdings}
+        orders={orders}
+        fills={fills}
+        onCancel={vi.fn()}
+        cashBalanceCents={100000000}
+      />,
+    )
+    expect(screen.getByText(/cash/i)).not.toBeNull()
+    expect(screen.getByText(formatUsd(100000000))).not.toBeNull()
+  })
+
   it('shows holdings on the default tab', () => {
-    render(<YouPanel holdings={holdings} orders={orders} fills={fills} onCancel={vi.fn()} />)
+    render(
+      <YouPanel
+        holdings={holdings}
+        orders={orders}
+        fills={fills}
+        onCancel={vi.fn()}
+        cashBalanceCents={0}
+      />,
+    )
     expect(screen.getByText('AAPL')).not.toBeNull()
     expect(screen.getByText('12')).not.toBeNull()
   })
@@ -56,6 +87,7 @@ describe('YouPanel', () => {
         fills={fills}
         onCancel={onCancel}
         defaultTab="orders"
+        cashBalanceCents={0}
       />,
     )
 
