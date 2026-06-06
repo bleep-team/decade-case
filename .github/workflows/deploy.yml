@@ -57,9 +57,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # Migrations apply the schema + seed the reference stocks (migration 0001).
-      # db:seed-dev adds demo brokers so the broker API is testable — a stopgap
-      # until brokers are provisioned from Clerk sign-ups. Both are idempotent.
-      - name: Run migrations + seed demo brokers
-        run: pnpm --filter @decade/db db:migrate && pnpm --filter @decade/db db:seed-dev
+      # db:seed sets stock reference prices and the is_mock house brokers the
+      # market-maker needs for demo liquidity (without it, a deployed user gets no
+      # fills); it is idempotent. db:seed-dev is intentionally NOT run here — its
+      # demo brokers are a local-only convenience; real brokers are auto-provisioned
+      # from Clerk sign-ups (PRD #5).
+      - name: Run migrations + seed market data
+        run: pnpm --filter @decade/db db:migrate && pnpm --filter @decade/db db:seed
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
