@@ -1,6 +1,18 @@
 export { inngest } from './client.js'
-export type { ExchangeEvents, OrderSubmittedEvent, TradeExecutedEvent } from './events.js'
-export { functions, matchOrderFn, expireOrdersFn, deliverWebhookFn } from './functions/index.js'
+export type {
+  ExchangeEvents,
+  OrderSubmittedEvent,
+  TradeExecutedEvent,
+  OrderCancelRequestedEvent,
+} from './events.js'
+export {
+  functions,
+  matchOrderFn,
+  cancelOrderFn,
+  expireOrdersFn,
+  deliverWebhookFn,
+} from './functions/index.js'
+export { runCancel } from './run-cancel.js'
 export { persistMatchResult } from './persist.js'
 export { computeSettlementDeltas } from './settlement.js'
 export type { CashDelta, PositionDelta, SettlementDeltas } from './settlement.js'
