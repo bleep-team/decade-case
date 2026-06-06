@@ -1,8 +1,0 @@
-@import 'tailwindcss';
-
-/* Pull design-system component classes into Tailwind's scan set. */
-@source '../../../../packages/ui/src/**/*.{ts,tsx}';
-
-@theme {
-  --color-brand: oklch(0.6 0.13 160);
-}

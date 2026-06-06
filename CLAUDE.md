@@ -22,7 +22,7 @@ Each package lives in `packages/<name>/` and is published as `@decade/<name>`.
 | ---------------- | -------------------------------------------------- |
 | Monorepo         | pnpm + Turborepo                                   |
 | Frontend/Backend | Next.js (App Router) on Vercel                     |
-| UI               | Tailwind CSS + small shadcn-style DS               |
+| UI               | Tailwind CSS + shadcn/ui design system             |
 | Database         | Postgres (Neon in prod) + Drizzle ORM, `pg` driver |
 | Auth             | Clerk (social login)                               |
 | Jobs / queues    | Inngest                                            |
@@ -40,7 +40,7 @@ Each package lives in `packages/<name>/` and is published as `@decade/<name>`.
 | `@decade/matching-engine`   | **Pure** price-time matching, partial fills, order book, price calc          |
 | `@decade/db`                | Drizzle schema, migrations, `pg`-backed client                               |
 | `@decade/auth`              | Clerk helpers + broker identity                                              |
-| `@decade/ui`                | Tailwind design-system components                                            |
+| `@decade/ui`                | shadcn/ui design system (Tailwind v4, dark theme)                            |
 | `@decade/exchange-runtime`  | Inngest jobs: matching, expiry sweep, webhook delivery + persistence         |
 | `@decade/mcp`               | MCP server exposing the exchange API as tools                                |
 | `web` (apps/web)            | Next.js: landing, Clerk auth, broker dashboard, REST + Inngest/MCP endpoints |

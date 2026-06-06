@@ -58,16 +58,16 @@ If the approved slice breakdown introduces new tables, columns, or any other cha
 Workflow:
 
 1. Author the Drizzle schema additions in `packages/db/src/*.ts`. Decide column names, FKs, indexes, RLS policies — these are load-bearing product calls and belong to the human author.
-2. Run `pnpm --filter @bleep/db db:generate`. This invokes drizzle-kit, which writes a new `00NN_<slug>.sql` file under `packages/db/drizzle/` and appends a single new entry to `meta/_journal.json` with an authentic `when` timestamp. Do **not** edit either file by hand.
+2. Run `pnpm --filter @decade/db db:generate`. This invokes drizzle-kit, which writes a new `00NN_<slug>.sql` file under `packages/db/drizzle/` and appends a single new entry to `meta/_journal.json` with an authentic `when` timestamp. Do **not** edit either file by hand.
 3. Inspect the generated SQL. If it looks wrong (drizzle-kit can over-eagerly DROP/RECREATE on certain renames), rework the schema TypeScript and re-generate. Discard partial outputs cleanly with `git checkout -- packages/db/drizzle/`.
 4. Add RLS policies / triggers / seed data to the new migration by hand-editing the new `.sql` file only.
 5. Commit the schema TypeScript + generated migration + journal append in a single commit on the working branch. Suggested message: `db(repo): schema baseline for PRD #<n> — <noun>` (e.g. `db(repo): schema baseline for PRD #299 — attachments`).
-6. Tell the user, in one short line: **"Run `pnpm --filter @bleep/db db:migrate` to apply the new migration to your dev Neon branch."** Wait for them to confirm success before moving on. If migrate fails, debug together — do not file issues against a half-applied schema.
+6. Tell the user, in one short line: **"Run `pnpm --filter @decade/db db:migrate` to apply the new migration to your dev Neon branch."** Wait for them to confirm success before moving on. If migrate fails, debug together — do not file issues against a half-applied schema.
 
 After the human has applied the migration to their dev branch:
 
 - Reframe any "DB foundation" slice so its acceptance criteria implement the **repo + runtime + tests against the now-existing schema**, not "author the schema." For example, instead of "create the `attachments` table with RLS and FK columns X/Y," the AC becomes "implement `createDbAttachmentsRepo` against the existing `attachments` table; RLS isolation test against tenant A/B is green."
-- Add this rule as a slice AC on every DB-touching slice: **"This slice must NOT modify `packages/db/drizzle/**`or the Drizzle schema TypeScript. The schema is already authored on the working branch."** The journal-immutability test in`@bleep/db` enforces it; this AC keeps it visible in the issue body for the implementer agent.
+- Add this rule as a slice AC on every DB-touching slice: **"This slice must NOT modify `packages/db/drizzle/**`or the Drizzle schema TypeScript. The schema is already authored on the working branch."** The journal-immutability test in`@decade/db` enforces it; this AC keeps it visible in the issue body for the implementer agent.
 
 ### 6. Create the GitHub issues
 
@@ -226,7 +226,7 @@ The "without page refresh" judgement belongs on demo-bar — both halves above p
 
 ✅ Mock at the adapter boundary; assert on the contract, not the vendor:
 
-- The `AttachmentAdapter` fake adapter, given canned `extend.poll` responses representing the success path, drives the runtime through `parsing → ready` and persists the returned markdown on the row. Asserted by unit tests on `@bleep/attachments-runtime`.
+- The `AttachmentAdapter` fake adapter, given canned `extend.poll` responses representing the success path, drives the runtime through `parsing → ready` and persists the returned markdown on the row. Asserted by unit tests on `@decade/attachments-runtime`.
 - The Extend adapter implementation, given a stubbed HTTP client returning a canned Extend response shape, emits a `Ready` status event with the parsed markdown. Asserted by an adapter unit test.
 - Composition: the Inngest parse function, given the real adapter wired against the stubbed HTTP client, drives a fixture row to `ready`.
 
@@ -259,7 +259,7 @@ The "without page refresh" judgement belongs on demo-bar — both halves above p
 
 ✅ Almost entirely demo-bar, but a handful of structural claims are AFK-verifiable:
 
-- New components import shadcn primitives from `@bleep/ui/components/*` and not hand-rolled equivalents. Asserted by a snapshot test or a grep-based static check committed alongside.
+- New components import shadcn primitives from `@decade/ui/components/*` and not hand-rolled equivalents. Asserted by a snapshot test or a grep-based static check committed alongside.
 - New components use `lucide-react` icons (no other icon library introduced). Asserted by a static check on imports.
 - No new Tailwind color tokens introduced — diff scan of `tailwind.config.ts`. Asserted by checking the config file isn't modified by the slice (or only modified in approved ways).
 

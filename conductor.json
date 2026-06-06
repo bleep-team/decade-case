@@ -1,5 +1,5 @@
 {
   "scripts": {
-    "setup": "cp $CONDUCTOR_ROOT_PATH/apps/web/.env apps/web/.env 2>/dev/null || true\ncp $CONDUCTOR_ROOT_PATH/packages/db/.env packages/db/.env 2>/dev/null || true\npnpm install\npnpm build"
+    "setup": "cp $CONDUCTOR_ROOT_PATH/apps/web/.env apps/web/.env\n\ncp $CONDUCTOR_ROOT_PATH/packages/db/.env packages/db/.env\n\ncp $CONDUCTOR_ROOT_PATH/.sandcastle/.env .sandcastle/.env\n\npnpm install\n\npnpm build\n\npnpm sandcastle:build"
   }
 }

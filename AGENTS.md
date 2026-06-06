@@ -25,7 +25,7 @@ pnpm + Turborepo · Next.js (App Router) on Vercel · Postgres (Neon) + Drizzle
 | `@decade/matching-engine`   | Pure price-time matching, partial fills, book, price    |
 | `@decade/db`                | Drizzle schema, migrations, `pg` client                 |
 | `@decade/auth`              | Clerk helpers + broker identity                         |
-| `@decade/ui`                | Tailwind design-system components                       |
+| `@decade/ui`                | shadcn/ui design system (Tailwind v4, dark theme)       |
 | `@decade/exchange-runtime`  | Inngest jobs (match, expiry, webhooks) + persistence    |
 | `@decade/mcp`               | MCP server exposing the exchange API as tools           |
 | `web`                       | Next.js app: landing, auth, dashboard, REST/Inngest/MCP |

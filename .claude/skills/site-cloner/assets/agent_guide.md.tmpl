@@ -1,0 +1,107 @@
+> **Non-authoritative.** This file is a hand-rolled summary of the
+> structured artefacts in this dossier. If anything here disagrees
+> with `INDEX.json`, `design-tokens.json`, or a `page.json`, trust
+> the JSON.
+
+# AGENT_GUIDE — {{site_name}}
+
+You are a coding agent (Claude Code, Codex, or similar) tasked
+with re-implementing the captured website. This dossier contains
+everything we could record about the source site so you can rebuild
+it without re-fetching anything.
+
+## At a glance
+
+- **Source URL:** {{source_url}}
+- **Captured:** {{capture_date}}
+- **Target stack for rebuild plan:** `{{target_stack}}`
+- **Pages captured:** {{page_count}}
+- **Assets downloaded:** {{asset_count}}
+
+## Recommended read order
+
+Read these files in this order before writing any code:
+
+1. **`INDEX.json`** — every file in this dossier, its purpose,
+   whether it is authoritative, and the schema it follows.
+2. **`design-tokens.json`** — typography, palette, spacing, radii,
+   shadows, breakpoints, and motion observed across the site.
+   This is the single source of truth for tokens; do not infer
+   palette from screenshots when this file says otherwise.
+3. **`rebuild-plan.md`** — section-by-section recreation
+   instructions tailored to `{{target_stack}}`. Cross-references
+   `pages/<slug>/sections.json` and `design-tokens.json`.
+4. **`pages/home/page.json`** — the home-page manifest, with
+   pointers to every file describing the home page (DOM, raw HTML,
+   screenshots, sections, links, images).
+5. **`pages/home/sections.json`** — the structured section
+   breakdown of the home page, with bounding boxes, DOM byte
+   ranges, copy byte ranges, dominant tokens, and screenshot
+   crops per section. Iterate this array when scaffolding the
+   home page's components.
+6. **`assets/manifest.json`** — every downloaded asset with its
+   local path, MIME, byte size, and which pages referenced it.
+7. **`observations.md`** — qualitative notes on motion,
+   micro-interactions, and layout rhythm that the JSON files
+   cannot capture.
+
+## Authority rules
+
+| Fact                          | Authoritative file                     |
+|-------------------------------|----------------------------------------|
+| Page list                     | `meta/urls.txt`                        |
+| Page-level metadata           | `pages/<slug>/page.json`               |
+| Section breakdown             | `pages/<slug>/sections.json`           |
+| Design tokens                 | `design-tokens.json`                   |
+| Asset inventory               | `assets/manifest.json`                 |
+| Network API endpoints         | `assets/api.json`                      |
+| Visual ground truth           | screenshots in `pages/<slug>/`         |
+| Pre-JS markup                 | `pages/<slug>/raw.html`                |
+| Post-JS markup                | `pages/<slug>/dom.html`                |
+| Copy                          | `pages/<slug>/copy.md`                 |
+| Capture provenance            | `meta/capture.json`                    |
+| File index                    | `INDEX.json`                           |
+
+When two files disagree, the authoritative file wins. Files
+flagged `authoritative: false` in `INDEX.json` are human-skim
+mirrors only.
+
+## How to use this dossier
+
+1. **Routing.** Scaffold a route for every line in `meta/urls.txt`.
+   Slug rules are in `meta/capture.json`.
+2. **Layout.** For each route, open the matching
+   `pages/<slug>/sections.json` and create one component per
+   section, in the order given. Bounding boxes (`bbox.desktop`,
+   `bbox.mobile`) tell you what should fit on each viewport.
+3. **Tokens.** Pull colors, type, spacing, and radii from
+   `design-tokens.json`. Do **not** sample colors from the
+   screenshots — the JSON has frequency-ranked values with
+   semantic roles attached.
+4. **Copy.** Lift text from `pages/<slug>/copy.md`. Do **not**
+   re-OCR from screenshots.
+5. **Assets.** If you need an image or font, look it up in
+   `assets/manifest.json` and read it from disk. The same
+   manifest entry tells you which pages reference each asset, so
+   you can attribute it correctly.
+6. **Interactions.** The static dossier captures the *result* of
+   interactions, not their dynamics. Use `observations.md` for
+   any hover/scroll/animation behaviour the user has annotated;
+   otherwise treat motion as undefined and ask before guessing.
+
+## What is NOT here
+
+- **JS source.** Compiled framework bundles aren't useful as
+  source. `assets/js-urls.json` records their URLs only.
+- **Authenticated content.** This dossier covers public URLs.
+- **Animations / transitions in motion.** Only static snapshots
+  and CSS `transition` / `animation` token values.
+
+## IP and re-use
+
+This dossier captures publicly available content from
+{{source_url}} for the sole purpose of internal design
+reference. Captured assets are **not** redistributed and are
+**not** re-used in shipped product code. Use the dossier to
+inform your rebuild; produce original art and original copy in
+the output.
