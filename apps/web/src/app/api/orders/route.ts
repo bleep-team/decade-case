@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
+import { UnauthorizedError } from '@decade/auth'
 import { orders } from '@decade/db'
 import { getDb, inngest } from '@decade/exchange-runtime'
+import { resolveActingBroker } from '@/lib/broker-identity'
 import { submitOrderSchema } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
@@ -16,13 +18,24 @@ export async function POST(request: Request) {
     )
   }
 
+  // The acting broker comes from the authenticated identity, never the body.
+  let broker
+  try {
+    broker = await resolveActingBroker(request)
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+    }
+    throw error
+  }
+
   const body = parsed.data
   const db = getDb()
 
   const [inserted] = await db
     .insert(orders)
     .values({
-      brokerId: body.brokerId,
+      brokerId: broker.id,
       ownerDocument: body.ownerDocument,
       symbol: body.symbol,
       side: body.side,

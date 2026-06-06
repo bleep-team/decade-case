@@ -3,7 +3,8 @@ import { z } from 'zod'
 /** Request body for `POST /api/orders` — mirrors the case's minimum order fields. */
 export const submitOrderSchema = z
   .object({
-    brokerId: z.string().min(1),
+    // The acting broker is resolved from the authenticated session / API key,
+    // never from the request body — any `brokerId` a client sends is ignored.
     ownerDocument: z.string().min(1),
     symbol: z.string().min(1).max(16),
     side: z.enum(['bid', 'ask']),
