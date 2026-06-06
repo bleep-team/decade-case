@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@decade/ui/components/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@decade/ui/components/tabs'
+import { useUrlState } from '@/lib/use-url-state'
 
 /** A signed share position the broker holds. */
 export interface HoldingRow {
@@ -74,19 +75,24 @@ export function YouPanel({
   onCancel,
   defaultTab = 'holdings',
 }: YouPanelProps) {
+  const [tab, setTab] = useUrlState('tab', defaultTab)
   return (
     <Card className="flex min-h-0 flex-1 flex-col">
       <CardHeader>
         <CardTitle>You</CardTitle>
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col">
-        <div className="mb-4 flex items-baseline justify-between border-b border-border pb-3">
+        <div
+          className="mb-4 flex items-baseline justify-between border-b border-border pb-3"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <span className="text-sm text-muted-foreground">Cash</span>
-          <span className="font-mono text-lg font-medium text-foreground">
+          <span className="font-mono text-lg font-medium tabular-nums text-foreground">
             {formatUsd(cashBalanceCents)}
           </span>
         </div>
-        <Tabs defaultValue={defaultTab} className="flex min-h-0 flex-1 flex-col">
+        <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
           <TabsList>
             <TabsTrigger value="holdings">Holdings</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>

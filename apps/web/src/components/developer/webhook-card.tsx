@@ -4,7 +4,13 @@ import { useState } from 'react'
 import { Save } from 'lucide-react'
 import { Badge } from '@decade/ui/components/badge'
 import { Button } from '@decade/ui/components/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@decade/ui/components/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@decade/ui/components/card'
 import { Input } from '@decade/ui/components/input'
 import { Label } from '@decade/ui/components/label'
 import {
@@ -70,6 +76,8 @@ export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: W
             <Input
               id="webhook-url"
               type="url"
+              autoComplete="off"
+              spellCheck={false}
               placeholder="https://example.com/webhooks/decade"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
@@ -79,6 +87,8 @@ export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: W
             <Label htmlFor="webhook-secret">Signing secret</Label>
             <Input
               id="webhook-secret"
+              autoComplete="off"
+              spellCheck={false}
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
             />

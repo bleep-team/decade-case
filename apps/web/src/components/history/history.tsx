@@ -2,11 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import type { OrderSide, OrderStatus, OrderType } from '@decade/types'
-import {
-  HistoryView,
-  type HistoryOrderRow,
-  type HistoryTradeRow,
-} from './history-view'
+import { useUrlState } from '@/lib/use-url-state'
+import { HistoryView, type HistoryOrderRow, type HistoryTradeRow } from './history-view'
 
 /** Rows per page; the list endpoints page with limit/offset. */
 const PAGE_SIZE = 25
@@ -55,7 +52,8 @@ async function fetchPage<T>(url: string, key: 'orders' | 'trades'): Promise<T[]>
  * while either tab fills a full page, so the broker can always advance to look.
  */
 export function History() {
-  const [page, setPage] = useState(1)
+  const [pageParam, setPageParam] = useUrlState('page', '1')
+  const page = Math.max(1, Number.parseInt(pageParam, 10) || 1)
   const [orders, setOrders] = useState<HistoryOrderRow[]>([])
   const [trades, setTrades] = useState<HistoryTradeRow[]>([])
 
@@ -110,8 +108,8 @@ export function History() {
       page={page}
       hasPrev={page > 1}
       hasNext={hasNext}
-      onPrevPage={() => setPage((p) => Math.max(1, p - 1))}
-      onNextPage={() => setPage((p) => p + 1)}
+      onPrevPage={() => setPageParam(String(Math.max(1, page - 1)))}
+      onNextPage={() => setPageParam(String(page + 1))}
     />
   )
 }

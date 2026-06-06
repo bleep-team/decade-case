@@ -16,6 +16,7 @@ import {
 } from '@decade/ui/components/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@decade/ui/components/tabs'
 import { formatTime } from '@/lib/format-time'
+import { useUrlState } from '@/lib/use-url-state'
 
 /** One of the broker's orders, as the history page lists it. */
 export interface HistoryOrderRow {
@@ -108,6 +109,7 @@ export function HistoryView({
   onNextPage,
   defaultTab = 'orders',
 }: HistoryViewProps) {
+  const [tab, setTab] = useUrlState('tab', defaultTab)
   const pagination = (
     <PaginationControls
       page={page}
@@ -124,7 +126,7 @@ export function HistoryView({
         <CardTitle>History</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue={defaultTab}>
+        <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="trades">Trades</TabsTrigger>

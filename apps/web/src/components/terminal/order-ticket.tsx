@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Send } from 'lucide-react'
+import { Loader2, Send } from 'lucide-react'
 import type { OrderSide, OrderType } from '@decade/types'
 import { dollarsToCents } from '@decade/types'
 import { Button } from '@decade/ui/components/button'
@@ -44,21 +44,47 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
   const [quantity, setQuantity] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
   const [ownerDocument, setOwnerDocument] = useState(defaultOwnerDocument)
+  const [errors, setErrors] = useState<{ quantity?: string; price?: string }>({})
+  const [pending, setPending] = useState(false)
 
   const isMarket = type === 'market'
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    const limitPrice = isMarket || price === '' ? null : dollarsToCents(Number(price))
-    void onSubmit({
-      ownerDocument,
-      symbol,
-      side,
-      type,
-      limitPrice,
-      quantity: Number(quantity),
-      expiresAt: expiresAt === '' ? null : new Date(expiresAt).toISOString(),
-    })
+
+    const quantityValue = Number(quantity)
+    const priceValue = Number(price)
+    const nextErrors: { quantity?: string; price?: string } = {}
+    if (quantity === '' || !Number.isFinite(quantityValue) || quantityValue <= 0) {
+      nextErrors.quantity = 'Enter a quantity greater than 0.'
+    }
+    if (!isMarket && (price === '' || !Number.isFinite(priceValue) || priceValue <= 0)) {
+      nextErrors.price = 'Enter a price greater than 0.'
+    }
+    setErrors(nextErrors)
+    if (nextErrors.quantity) {
+      document.getElementById('ticket-quantity')?.focus()
+      return
+    }
+    if (nextErrors.price) {
+      document.getElementById('ticket-price')?.focus()
+      return
+    }
+
+    setPending(true)
+    try {
+      await onSubmit({
+        ownerDocument,
+        symbol,
+        side,
+        type,
+        limitPrice: isMarket ? null : dollarsToCents(priceValue),
+        quantity: quantityValue,
+        expiresAt: expiresAt === '' ? null : new Date(expiresAt).toISOString(),
+      })
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -117,9 +143,16 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
                 inputMode="numeric"
                 autoComplete="off"
                 placeholder="0"
+                aria-invalid={errors.quantity ? true : undefined}
+                aria-describedby={errors.quantity ? 'ticket-quantity-error' : undefined}
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
               />
+              {errors.quantity ? (
+                <p id="ticket-quantity-error" className="text-sm text-destructive">
+                  {errors.quantity}
+                </p>
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="ticket-price">Price (USD)</Label>
@@ -133,8 +166,15 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
                 disabled={isMarket}
                 value={isMarket ? '' : price}
                 placeholder={isMarket ? 'Market' : '0.00'}
+                aria-invalid={errors.price ? true : undefined}
+                aria-describedby={errors.price ? 'ticket-price-error' : undefined}
                 onChange={(e) => setPrice(e.target.value)}
               />
+              {errors.price ? (
+                <p id="ticket-price-error" className="text-sm text-destructive">
+                  {errors.price}
+                </p>
+              ) : null}
             </div>
           </div>
 
@@ -160,9 +200,13 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
             </div>
           </div>
 
-          <Button type="submit" className="w-full">
-            <Send className="size-4" aria-hidden="true" />
-            Submit order
+          <Button type="submit" className="w-full" disabled={pending}>
+            {pending ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Send className="size-4" aria-hidden="true" />
+            )}
+            {pending ? 'Submitting…' : 'Submit order'}
           </Button>
         </form>
       </CardContent>

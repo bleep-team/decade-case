@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { OrderBookSnapshot, OrderSide, OrderStatus, OrderType } from '@decade/types'
 import { submitOrderAction, cancelOrderAction } from '@/app/actions/orders'
+import { useUrlState } from '@/lib/use-url-state'
 import { OrderBookPanel } from './order-book-panel'
 import { OrderTicket, type OrderTicketPayload } from './order-ticket'
 import { PriceDisplay } from './price-display'
@@ -90,7 +91,7 @@ export function Terminal({
   onSubmitOrder,
   onCancelOrder,
 }: TerminalProps) {
-  const [symbol, setSymbol] = useState(symbols[0] ?? '')
+  const [symbol, setSymbol] = useUrlState('symbol', symbols[0] ?? '')
 
   const price = usePolledJson<PriceResponse>(`/api/stocks/${symbol}/price`)
   const book = usePolledJson<OrderBookSnapshot>(`/api/stocks/${symbol}/book`)
@@ -129,8 +130,8 @@ export function Terminal({
 
   const submit =
     onSubmitOrder ??
-    ((payload: OrderTicketPayload) => {
-      void submitOrderAction(payload)
+    (async (payload: OrderTicketPayload) => {
+      await submitOrderAction(payload)
     })
   const cancel =
     onCancelOrder ??
@@ -143,7 +144,7 @@ export function Terminal({
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-medium tracking-tight text-foreground">Terminal</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Terminal</h1>
         <SymbolSelect symbols={symbols} value={symbol} onChange={setSymbol} />
       </div>
 

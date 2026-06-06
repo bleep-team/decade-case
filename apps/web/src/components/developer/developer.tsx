@@ -2,6 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@decade/ui/components/tabs'
 import { rotateApiKeyAction, saveWebhookAction } from '@/app/actions/developer'
+import { useUrlState } from '@/lib/use-url-state'
 import { ApiKeyCard } from './api-key-card'
 import { IntegrationCard } from './integration-card'
 import { WebhookCard, type DeliveryRow, type WebhookPayload } from './webhook-card'
@@ -41,8 +42,9 @@ export function Developer({
     await saveWebhookAction(payload)
   },
 }: DeveloperProps) {
+  const [tab, setTab] = useUrlState('tab', 'api-key')
   return (
-    <Tabs defaultValue="api-key">
+    <Tabs value={tab} onValueChange={setTab}>
       <TabsList>
         <TabsTrigger value="api-key">API key</TabsTrigger>
         <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
