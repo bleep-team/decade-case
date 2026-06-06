@@ -75,26 +75,26 @@ export function YouPanel({
   defaultTab = 'holdings',
 }: YouPanelProps) {
   return (
-    <Card>
+    <Card className="flex min-h-0 flex-1 flex-col">
       <CardHeader>
         <CardTitle>You</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex min-h-0 flex-1 flex-col">
         <div className="mb-4 flex items-baseline justify-between border-b border-border pb-3">
           <span className="text-sm text-muted-foreground">Cash</span>
           <span className="font-mono text-lg font-medium text-foreground">
             {formatUsd(cashBalanceCents)}
           </span>
         </div>
-        <Tabs defaultValue={defaultTab}>
+        <Tabs defaultValue={defaultTab} className="flex min-h-0 flex-1 flex-col">
           <TabsList>
             <TabsTrigger value="holdings">Holdings</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="fills">Fills</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="holdings">
-            <ScrollArea className="max-h-72">
+          <TabsContent value="holdings" className="min-h-0 flex-1">
+            <ScrollArea className="h-full">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -122,8 +122,8 @@ export function YouPanel({
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="orders">
-            <ScrollArea className="max-h-72">
+          <TabsContent value="orders" className="min-h-0 flex-1">
+            <ScrollArea className="h-full">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -173,8 +173,8 @@ export function YouPanel({
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="fills">
-            <ScrollArea className="max-h-72">
+          <TabsContent value="fills" className="min-h-0 flex-1">
+            <ScrollArea className="h-full">
               <Table>
                 <TableHeader>
                   <TableRow>

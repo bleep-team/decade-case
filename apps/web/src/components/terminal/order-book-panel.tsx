@@ -22,19 +22,19 @@ export function OrderBookPanel({ book }: OrderBookPanelProps) {
   const spread = bestAsk !== null && bestBid !== null ? bestAsk - bestBid : null
 
   return (
-    <Card>
+    <Card className="flex min-h-0 flex-1 flex-col">
       <CardHeader>
         <CardTitle>Order book</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="text-sm">
+      <CardContent className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col text-sm">
           <div className="mb-1 grid grid-cols-3 text-xs text-muted-foreground">
             <span>Price</span>
             <span className="text-right">Qty</span>
             <span className="text-right">Orders</span>
           </div>
 
-          <ScrollArea className="max-h-72">
+          <ScrollArea className="min-h-0 flex-1">
             <div className="space-y-px">
               {asksHighToLow.map((level) => (
                 <BookRow key={`ask-${level.price}`} level={level} side="ask" />

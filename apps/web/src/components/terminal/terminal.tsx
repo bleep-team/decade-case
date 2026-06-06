@@ -141,19 +141,19 @@ export function Terminal({
   const emptyBook: OrderBookSnapshot = { symbol, bids: [], asks: [] }
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-2xl font-medium tracking-tight text-foreground">Terminal</h1>
         <SymbolSelect symbols={symbols} value={symbol} onChange={setSymbol} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section aria-label="Market" className="space-y-4">
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-2">
+        <section aria-label="Market" className="flex min-h-0 flex-col gap-4">
           <PriceDisplay symbol={symbol} priceCents={priceCents} deltaCents={deltaCents} />
           <OrderBookPanel book={book ?? emptyBook} />
         </section>
 
-        <section aria-label="You" className="space-y-4">
+        <section aria-label="You" className="flex min-h-0 flex-col gap-4">
           <OrderTicket
             symbol={symbol}
             defaultOwnerDocument={defaultOwnerDocument}
