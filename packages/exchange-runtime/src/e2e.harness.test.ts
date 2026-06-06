@@ -242,13 +242,14 @@ describe('exchange end-to-end slice (pglite harness + in-process Inngest)', () =
 
     // Private realtime publish: one per affected broker, on that broker's channel.
     expect(publish).toHaveBeenCalled()
-    const messages = await Promise.all(publish.mock.calls.map((c) => c[0] as Promise<unknown>))
-    const channels = (messages as Array<{ channel: string; topic: string }>).map((m) => m.channel)
+    type PublishedMessage = { channel: string; topic: string; data: { fills: unknown[] } }
+    const messages = await Promise.all(
+      publish.mock.calls.map((c) => c[0] as Promise<PublishedMessage>),
+    )
+    const channels = messages.map((m) => m.channel)
     expect(channels).toContain(`broker:${buyer.id}`)
     expect(channels).toContain(`broker:${seller.id}`)
-    const buyerMsg = (messages as Array<{ channel: string; topic: string; data: { fills: unknown[] } }>).find(
-      (m) => m.channel === `broker:${buyer.id}`,
-    )!
+    const buyerMsg = messages.find((m) => m.channel === `broker:${buyer.id}`)!
     expect(buyerMsg.topic).toBe('updates')
     expect(buyerMsg.data.fills.length).toBeGreaterThan(0)
 
