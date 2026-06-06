@@ -1,6 +1,7 @@
 import type { OrderBookLevel, OrderBookSnapshot } from '@decade/types'
 import { formatUsd } from '@decade/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@decade/ui/components/card'
+import { ScrollArea } from '@decade/ui/components/scroll-area'
 import { cn } from '@decade/ui/lib/utils'
 
 export interface OrderBookPanelProps {
@@ -33,27 +34,29 @@ export function OrderBookPanel({ book }: OrderBookPanelProps) {
             <span className="text-right">Orders</span>
           </div>
 
-          <div className="space-y-px">
-            {asksHighToLow.map((level) => (
-              <BookRow key={`ask-${level.price}`} level={level} side="ask" />
-            ))}
-          </div>
+          <ScrollArea className="max-h-72">
+            <div className="space-y-px">
+              {asksHighToLow.map((level) => (
+                <BookRow key={`ask-${level.price}`} level={level} side="ask" />
+              ))}
+            </div>
 
-          <div
-            data-testid="book-spread"
-            className="my-1 flex items-center justify-between border-y border-border py-1 text-xs text-muted-foreground"
-          >
-            <span>Spread</span>
-            <span className="font-mono text-foreground">
-              {spread !== null ? formatUsd(spread) : '—'}
-            </span>
-          </div>
+            <div
+              data-testid="book-spread"
+              className="my-1 flex items-center justify-between border-y border-border py-1 text-xs text-muted-foreground"
+            >
+              <span>Spread</span>
+              <span className="font-mono text-foreground">
+                {spread !== null ? formatUsd(spread) : '—'}
+              </span>
+            </div>
 
-          <div className="space-y-px">
-            {book.bids.map((level) => (
-              <BookRow key={`bid-${level.price}`} level={level} side="bid" />
-            ))}
-          </div>
+            <div className="space-y-px">
+              {book.bids.map((level) => (
+                <BookRow key={`bid-${level.price}`} level={level} side="bid" />
+              ))}
+            </div>
+          </ScrollArea>
         </div>
       </CardContent>
     </Card>

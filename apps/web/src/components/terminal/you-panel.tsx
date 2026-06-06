@@ -6,6 +6,7 @@ import { formatUsd } from '@decade/types'
 import { Badge } from '@decade/ui/components/badge'
 import { Button } from '@decade/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@decade/ui/components/card'
+import { ScrollArea } from '@decade/ui/components/scroll-area'
 import {
   Table,
   TableBody,
@@ -93,108 +94,114 @@ export function YouPanel({
           </TabsList>
 
           <TabsContent value="holdings">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Symbol</TableHead>
-                  <TableHead className="text-right">Position</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {holdings.length === 0 ? (
+            <ScrollArea className="max-h-72">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={2} className="text-muted-foreground">
-                      No holdings yet.
-                    </TableCell>
+                    <TableHead>Symbol</TableHead>
+                    <TableHead className="text-right">Position</TableHead>
                   </TableRow>
-                ) : (
-                  holdings.map((h) => (
-                    <TableRow key={h.symbol}>
-                      <TableCell>{h.symbol}</TableCell>
-                      <TableCell className="text-right font-mono">{h.quantity}</TableCell>
+                </TableHeader>
+                <TableBody>
+                  {holdings.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-muted-foreground">
+                        No holdings yet.
+                      </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    holdings.map((h) => (
+                      <TableRow key={h.symbol}>
+                        <TableCell>{h.symbol}</TableCell>
+                        <TableCell className="text-right font-mono">{h.quantity}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           </TabsContent>
 
           <TabsContent value="orders">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Side</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead className="text-right">Remaining</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.length === 0 ? (
+            <ScrollArea className="max-h-72">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="text-muted-foreground">
-                      No orders yet.
-                    </TableCell>
+                    <TableHead>Side</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead className="text-right">Remaining</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
-                ) : (
-                  orders.map((o) => (
-                    <TableRow key={o.id}>
-                      <TableCell className="uppercase">{o.side}</TableCell>
-                      <TableCell className="font-mono">
-                        {o.limitPriceCents != null ? formatUsd(o.limitPriceCents) : 'MKT'}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">{o.remaining}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{o.status}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {isCancellable(o.status) ? (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            aria-label={`Cancel order ${o.id}`}
-                            onClick={() => void onCancel(o.id)}
-                          >
-                            <X className="size-4" aria-hidden="true" />
-                            Cancel
-                          </Button>
-                        ) : null}
+                </TableHeader>
+                <TableBody>
+                  {orders.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-muted-foreground">
+                        No orders yet.
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    orders.map((o) => (
+                      <TableRow key={o.id}>
+                        <TableCell className="uppercase">{o.side}</TableCell>
+                        <TableCell className="font-mono">
+                          {o.limitPriceCents != null ? formatUsd(o.limitPriceCents) : 'MKT'}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">{o.remaining}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{o.status}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {isCancellable(o.status) ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              aria-label={`Cancel order ${o.id}`}
+                              onClick={() => void onCancel(o.id)}
+                            >
+                              <X className="size-4" aria-hidden="true" />
+                              Cancel
+                            </Button>
+                          ) : null}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           </TabsContent>
 
           <TabsContent value="fills">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Side</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead className="text-right">Quantity</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {fills.length === 0 ? (
+            <ScrollArea className="max-h-72">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={3} className="text-muted-foreground">
-                      No fills yet.
-                    </TableCell>
+                    <TableHead>Side</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead className="text-right">Quantity</TableHead>
                   </TableRow>
-                ) : (
-                  fills.map((f) => (
-                    <TableRow key={f.tradeId}>
-                      <TableCell className="uppercase">{f.side}</TableCell>
-                      <TableCell className="font-mono">{formatUsd(f.price)}</TableCell>
-                      <TableCell className="text-right font-mono">{f.quantity}</TableCell>
+                </TableHeader>
+                <TableBody>
+                  {fills.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-muted-foreground">
+                        No fills yet.
+                      </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    fills.map((f) => (
+                      <TableRow key={f.tradeId}>
+                        <TableCell className="uppercase">{f.side}</TableCell>
+                        <TableCell className="font-mono">{formatUsd(f.price)}</TableCell>
+                        <TableCell className="text-right font-mono">{f.quantity}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           </TabsContent>
         </Tabs>
       </CardContent>

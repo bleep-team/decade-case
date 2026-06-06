@@ -47,7 +47,7 @@ export function AppHeader({ onReset = defaultReset }: AppHeaderProps) {
   const [confirming, setConfirming] = useState(false)
 
   return (
-    <header className="flex items-center justify-between border-b border-border px-6 py-3">
+    <header className="flex shrink-0 items-center justify-between border-b border-border px-6 py-3">
       <div className="flex items-center gap-6">
         <Link
           href="/app"
@@ -70,12 +70,7 @@ export function AppHeader({ onReset = defaultReset }: AppHeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => setConfirming(true)}
-        >
+        <Button type="button" size="sm" variant="outline" onClick={() => setConfirming(true)}>
           <RotateCcw className="size-4" aria-hidden="true" />
           Reset
         </Button>

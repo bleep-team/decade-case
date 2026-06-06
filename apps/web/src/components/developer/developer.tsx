@@ -1,5 +1,6 @@
 'use client'
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@decade/ui/components/tabs'
 import { rotateApiKeyAction, saveWebhookAction } from '@/app/actions/developer'
 import { ApiKeyCard } from './api-key-card'
 import { IntegrationCard } from './integration-card'
@@ -24,8 +25,10 @@ export interface DeveloperProps {
 
 /**
  * The Developer page body: API key (reveal/rotate), webhook registration and
- * recent deliveries, and the MCP/REST integration reference. Server actions are
- * the defaults; tests can inject their own handlers.
+ * recent deliveries, and the MCP/REST integration reference — organized into
+ * tabs so one section shows at a time and the page fits the content region
+ * without a tall card stack. Server actions are the defaults; tests can inject
+ * their own handlers.
  */
 export function Developer({
   baseUrl,
@@ -39,17 +42,29 @@ export function Developer({
   },
 }: DeveloperProps) {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <ApiKeyCard apiKey={apiKey} onRotate={onRotate} />
-      <IntegrationCard baseUrl={baseUrl} />
-      <div className="lg:col-span-2">
+    <Tabs defaultValue="api-key">
+      <TabsList>
+        <TabsTrigger value="api-key">API key</TabsTrigger>
+        <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+        <TabsTrigger value="mcp-rest">MCP &amp; REST</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="api-key">
+        <ApiKeyCard apiKey={apiKey} onRotate={onRotate} />
+      </TabsContent>
+
+      <TabsContent value="webhooks">
         <WebhookCard
           defaultUrl={defaultWebhookUrl}
           defaultSecret={defaultWebhookSecret}
           deliveries={deliveries}
           onSave={onSaveWebhook}
         />
-      </div>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="mcp-rest">
+        <IntegrationCard baseUrl={baseUrl} />
+      </TabsContent>
+    </Tabs>
   )
 }
