@@ -56,7 +56,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run migrations
-        run: pnpm --filter @decade/db db:migrate
+      # Migrations apply the schema + seed the reference stocks (migration 0001).
+      # db:seed-dev adds demo brokers so the broker API is testable — a stopgap
+      # until brokers are provisioned from Clerk sign-ups. Both are idempotent.
+      - name: Run migrations + seed demo brokers
+        run: pnpm --filter @decade/db db:migrate && pnpm --filter @decade/db db:seed-dev
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

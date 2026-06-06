@@ -96,16 +96,16 @@ pnpm dev:inngest                              # Inngest dev server (separate she
 
 ## API (v1)
 
-| Method | Path                        | Purpose                                |
-| ------ | --------------------------- | -------------------------------------- |
-| `POST` | `/api/orders`               | Submit a bid/ask order → `{ orderId }` |
-| `GET`  | `/api/orders/:id`           | Order status                           |
-| `GET`  | `/api/stocks/:symbol/book`  | Top-of-book bids/asks (`?depth=10`)    |
-| `GET`  | `/api/stocks/:symbol/price` | Current price (moving average)         |
-| `GET`  | `/api/brokers/:id/balance`  | Broker cash balance                    |
-| `GET`  | `/api/health`               | Liveness + DB readiness                |
-| `POST` | `/api/inngest`              | Inngest function endpoint              |
-| `GET`  | `/api/mcp`                  | MCP server surface                     |
+| Method | Path                        | Purpose                                       |
+| ------ | --------------------------- | --------------------------------------------- |
+| `POST` | `/api/orders`               | Submit a bid/ask order → `{ orderId }`        |
+| `GET`  | `/api/orders/:id`           | Order status                                  |
+| `GET`  | `/api/stocks/:symbol/book`  | Top-of-book bids/asks (`?depth=10`)           |
+| `GET`  | `/api/stocks/:symbol/price` | Current price (moving average)                |
+| `GET`  | `/api/brokers/:id/balance`  | Broker cash balance                           |
+| `GET`  | `/api/health`               | Liveness + DB readiness                       |
+| `POST` | `/api/inngest`              | Inngest function endpoint                     |
+| `POST` | `/api/mcp`                  | MCP server (Streamable HTTP) — exchange tools |
 
 ## Documentation
 

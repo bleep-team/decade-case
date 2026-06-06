@@ -21,7 +21,10 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "unrs-resolver"
-    ]
+    ],
+    "overrides": {
+      "@modelcontextprotocol/sdk": "1.26.0"
+    }
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
