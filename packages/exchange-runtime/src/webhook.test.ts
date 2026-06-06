@@ -1,5 +1,11 @@
+import { createHmac } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import { buildWebhookPayload, signPayload } from './webhook.js'
+import {
+  buildWebhookPayload,
+  SIGNATURE_HEADER,
+  signPayload,
+  webhookHeaders,
+} from './webhook.js'
 
 const trade = {
   id: 'trd_1',
@@ -35,5 +41,18 @@ describe('signPayload', () => {
   it('changes when the secret changes', () => {
     const body = JSON.stringify(buildWebhookPayload(trade))
     expect(signPayload('whsec_1', body)).not.toBe(signPayload('whsec_2', body))
+  })
+})
+
+describe('webhookHeaders (the signed-delivery contract)', () => {
+  it('carries the HMAC-SHA256 signature of the body in x-decade-signature', () => {
+    const body = JSON.stringify(buildWebhookPayload(trade))
+    const headers = webhookHeaders('whsec_1', body)
+
+    expect(headers['content-type']).toBe('application/json')
+    // The header is the raw-body HMAC a recipient recomputes to verify origin.
+    const expected = createHmac('sha256', 'whsec_1').update(body).digest('hex')
+    expect(headers[SIGNATURE_HEADER]).toBe(expected)
+    expect(headers[SIGNATURE_HEADER]).toBe(signPayload('whsec_1', body))
   })
 })

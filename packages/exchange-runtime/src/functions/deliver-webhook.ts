@@ -2,7 +2,7 @@ import { and, eq, inArray } from 'drizzle-orm'
 import { trades, webhookDeliveries, webhookEndpoints } from '@decade/db'
 import { inngest } from '../client.js'
 import { getDb } from '../db.js'
-import { buildWebhookPayload, signPayload } from '../webhook.js'
+import { buildWebhookPayload, webhookHeaders } from '../webhook.js'
 
 export const deliverWebhookFn = inngest.createFunction(
   { id: 'deliver-webhook', retries: 4 },
@@ -52,10 +52,7 @@ export const deliverWebhookFn = inngest.createFunction(
       await step.run(`deliver-${endpoint.id}`, async () => {
         const response = await fetch(endpoint.url, {
           method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'x-decade-signature': signPayload(endpoint.secret, body),
-          },
+          headers: webhookHeaders(endpoint.secret, body),
           body,
         })
         if (!response.ok) {
