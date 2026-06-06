@@ -10,7 +10,7 @@ function order(p: Partial<Order> & { side: OrderSide }): Order {
   const quantity = p.quantity ?? 1000
   return {
     id: `ord_${seq}`,
-    brokerId: 'brk_a',
+    brokerId: `brk_${seq}`,
     ownerDocument: 'doc_1',
     symbol: 'AAPL',
     type: 'limit',
@@ -173,6 +173,42 @@ describe('matchOrder — market orders (extension)', () => {
 
     expect(result.trades).toHaveLength(0)
     expect(result.takerOrder.status).toBe('cancelled')
+  })
+})
+
+describe('matchOrder — self-trade prevention', () => {
+  it('skips a same-broker resting order and matches the next eligible counterparty', () => {
+    // The taker (brk_a) crosses its own resting ask first, then a third party's.
+    const ownAsk = order({
+      side: 'ask',
+      brokerId: 'brk_a',
+      limitPrice: 1000,
+      quantity: 1000,
+      sequence: 1,
+    })
+    const otherAsk = order({
+      side: 'ask',
+      brokerId: 'brk_b',
+      limitPrice: 1000,
+      quantity: 1000,
+      sequence: 2,
+    })
+    const incomingBid = order({
+      side: 'bid',
+      brokerId: 'brk_a',
+      limitPrice: 1000,
+      quantity: 1000,
+      sequence: 3,
+    })
+
+    const result = matchOrder(incomingBid, [ownAsk, otherAsk])
+
+    expect(result.trades).toHaveLength(1)
+    expect(result.trades[0]?.askOrderId).toBe(otherAsk.id)
+    expect(result.trades[0]?.askBrokerId).toBe('brk_b')
+    expect(result.takerOrder.status).toBe('filled')
+    expect(result.filledRestingOrders).toHaveLength(1)
+    expect(result.filledRestingOrders[0]?.id).toBe(otherAsk.id)
   })
 })
 

@@ -97,6 +97,11 @@ export function matchOrder(incoming: Order, restingBook: readonly Order[]): Matc
   for (const candidate of candidates) {
     if (taker.remaining <= 0) break
 
+    // Self-trade prevention: a broker may not trade against its own resting
+    // order. Skip it so liquidity correctly redirects to the next counterparty
+    // rather than the taker painting the tape against itself.
+    if (candidate.brokerId === taker.brokerId) continue
+
     const bid = taker.side === 'bid' ? taker : candidate
     const ask = taker.side === 'ask' ? taker : candidate
 

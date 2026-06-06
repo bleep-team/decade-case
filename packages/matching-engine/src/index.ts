@@ -1,5 +1,7 @@
 export { matchOrder } from './match.js'
 export type { ProposedTrade, MatchResult } from './match.js'
+export { truncateToBudget } from './truncate.js'
+export { excludeExpired } from './expiry.js'
 export { restingPriority } from './priority.js'
 export { buildOrderBook, bestBid, bestAsk, midpoint } from './book.js'
 export { movingAverage } from './price.js'
