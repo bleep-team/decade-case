@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { RotateCcw } from 'lucide-react'
 import { UserButton } from '@clerk/nextjs'
 import { Button } from '@decade/ui/components/button'
@@ -15,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@decade/ui/components/alert-dialog'
+import { cn } from '@decade/ui/lib/utils'
 import { Wordmark } from './wordmark'
 
 /** The app's top-level pages, exposed as header navigation. */
@@ -39,16 +41,18 @@ async function defaultReset(): Promise<void> {
 }
 
 /**
- * The app header: the wordmark, thin Terminal / History / Developer navigation,
- * a reset action guarded by a confirmation dialog, and the Clerk user button.
- * The reset dialog is controlled so the confirm path is deterministic to test.
+ * The app header, laid out in three zones: the wordmark and a "Demo" context
+ * badge on the left, the primary navigation centered with a brand-accent active
+ * indicator, and the demo-reset control + Clerk user button on the right. The
+ * reset dialog is controlled so the confirm path is deterministic to test.
  */
 export function AppHeader({ onReset = defaultReset }: AppHeaderProps) {
   const [confirming, setConfirming] = useState(false)
+  const pathname = usePathname()
 
   return (
-    <header className="flex shrink-0 items-center justify-between border-b border-border px-6 py-3">
-      <div className="flex items-center gap-6">
+    <header className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-border px-6 py-3">
+      <div className="flex items-center gap-3">
         <Link
           href="/app"
           className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -56,24 +60,48 @@ export function AppHeader({ onReset = defaultReset }: AppHeaderProps) {
         >
           <Wordmark />
         </Link>
-        <nav aria-label="Primary" className="flex items-center gap-4 text-sm">
-          {NAV_LINKS.map((link) => (
+        <span className="hidden rounded-full border border-brand/30 bg-brand/10 px-2 py-0.5 text-[0.625rem] font-medium uppercase tracking-wide text-brand sm:inline-block">
+          Demo
+        </span>
+      </div>
+
+      <nav aria-label="Primary" className="flex items-center gap-1">
+        {NAV_LINKS.map((link) => {
+          const active = pathname === link.href
+          return (
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              aria-current={active ? 'page' : undefined}
+              className={cn(
+                'relative rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+              )}
             >
               {link.label}
+              {active ? (
+                <span
+                  className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-brand"
+                  aria-hidden="true"
+                />
+              ) : null}
             </Link>
-          ))}
-        </nav>
-      </div>
+          )
+        })}
+      </nav>
 
-      <div className="flex items-center gap-3">
-        <Button type="button" size="sm" variant="outline" onClick={() => setConfirming(true)}>
+      <div className="flex items-center justify-end gap-3">
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="text-muted-foreground"
+          onClick={() => setConfirming(true)}
+        >
           <RotateCcw className="size-4" aria-hidden="true" />
-          Reset
+          Reset demo
         </Button>
+        <div className="h-5 w-px bg-border" aria-hidden="true" />
         <UserButton />
       </div>
 

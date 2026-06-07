@@ -5,6 +5,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@decade/ui/components/card'
+import { cn } from '@decade/ui/lib/utils'
+import { CodeBlock } from './code-block'
 
 /**
  * The exchange's MCP tool surface, mirroring `registerExchangeTools` in
@@ -44,10 +46,35 @@ export interface IntegrationCardProps {
   baseUrl: string
 }
 
+/** A small uppercase section label, in the Stripe reference idiom. */
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      {children}
+    </h3>
+  )
+}
+
+/** An HTTP method pill — POST carries the brand accent, reads start as muted. */
+function MethodBadge({ method }: { method: string }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex w-11 shrink-0 justify-center rounded border px-1 py-0.5 font-mono text-[0.625rem] font-semibold uppercase tracking-wide',
+        method === 'POST'
+          ? 'border-brand/30 bg-brand/10 text-brand'
+          : 'border-border bg-muted text-muted-foreground',
+      )}
+    >
+      {method}
+    </span>
+  )
+}
+
 /**
  * The integration panel: the MCP endpoint, the MCP tools an agent client can call
  * (with descriptions), the REST endpoints the key reaches, and a copy-paste curl
- * quickstart — everything needed to drive the exchange with the broker's API key.
+ * quickstart — laid out as a reference doc so the surface reads professionally.
  */
 export function IntegrationCard({ baseUrl }: IntegrationCardProps) {
   const mcpEndpoint = `${baseUrl}/api/mcp`
@@ -64,53 +91,55 @@ export function IntegrationCard({ baseUrl }: IntegrationCardProps) {
         <CardTitle>Integrate</CardTitle>
         <CardDescription>
           The same broker identity is reachable over MCP and REST with your API key, sent as an{' '}
-          <code>Authorization: Bearer</code> header.
+          <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+            Authorization: Bearer
+          </code>{' '}
+          header.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">MCP endpoint</h3>
-          <code className="block overflow-x-auto rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm">
-            {mcpEndpoint}
-          </code>
-        </div>
+        <section className="space-y-2">
+          <SectionHeading>MCP endpoint</SectionHeading>
+          <CodeBlock label="Streamable HTTP" code={mcpEndpoint} />
+        </section>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">MCP tools</h3>
-          <ul className="space-y-2">
+        <section className="space-y-2">
+          <SectionHeading>MCP tools</SectionHeading>
+          <div className="divide-y divide-border overflow-hidden rounded-md border border-border">
             {MCP_TOOLS.map((tool) => (
-              <li key={tool} className="space-y-0.5">
-                <code className="font-mono text-sm text-foreground">{tool}</code>
-                <p className="text-sm text-muted-foreground">{TOOL_DESCRIPTIONS[tool]}</p>
-              </li>
+              <div
+                key={tool}
+                className="flex flex-col gap-0.5 px-3 py-2 sm:flex-row sm:items-baseline sm:gap-3"
+              >
+                <code className="font-mono text-sm text-brand">{tool}</code>
+                <span className="text-sm text-muted-foreground">{TOOL_DESCRIPTIONS[tool]}</span>
+              </div>
             ))}
-          </ul>
-        </div>
+          </div>
+        </section>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">REST endpoints</h3>
-          <ul className="space-y-1">
+        <section className="space-y-2">
+          <SectionHeading>REST endpoints</SectionHeading>
+          <div className="divide-y divide-border overflow-hidden rounded-md border border-border">
             {REST_ENDPOINTS.map((endpoint) => (
-              <li key={`${endpoint.method} ${endpoint.path}`} className="text-sm">
-                <code className="font-mono">
-                  <span className="text-muted-foreground">{endpoint.method}</span>{' '}
-                  <span className="text-foreground">{endpoint.path}</span>
-                </code>
-                <span className="ml-2 text-muted-foreground">{endpoint.summary}</span>
-              </li>
+              <div
+                key={`${endpoint.method} ${endpoint.path}`}
+                className="flex items-center gap-3 px-3 py-2"
+              >
+                <MethodBadge method={endpoint.method} />
+                <code className="font-mono text-sm text-foreground">{endpoint.path}</code>
+                <span className="ml-auto hidden text-sm text-muted-foreground md:block">
+                  {endpoint.summary}
+                </span>
+              </div>
             ))}
-          </ul>
-        </div>
+          </div>
+        </section>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">REST quickstart</h3>
-          <pre
-            aria-label="REST quickstart"
-            className="overflow-x-auto rounded-md border border-border bg-muted px-3 py-2 font-mono text-xs"
-          >
-            <code>{curl}</code>
-          </pre>
-        </div>
+        <section className="space-y-2">
+          <SectionHeading>Example request</SectionHeading>
+          <CodeBlock label="cURL" code={curl} ariaLabel="REST quickstart" />
+        </section>
       </CardContent>
     </Card>
   )

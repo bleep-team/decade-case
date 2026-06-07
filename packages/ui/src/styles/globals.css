@@ -48,6 +48,10 @@
   --gain: oklch(0.723 0.143 152.6);
   --loss: oklch(0.637 0.171 29.5);
 
+  /* The warm brand accent (#f0a868), shared with the landing. Used sparingly as
+   * a sharp accent on a monochrome field: active navigation, key identifiers. */
+  --brand: #f0a868;
+
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
   --ring: oklch(0.708 0 0);
@@ -95,6 +99,7 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-gain: var(--gain);
   --color-loss: var(--loss);
+  --color-brand: var(--brand);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

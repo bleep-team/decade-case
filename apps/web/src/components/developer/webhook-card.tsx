@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Save } from 'lucide-react'
+import { ChevronDown, Save } from 'lucide-react'
 import { Badge } from '@decade/ui/components/badge'
 import { Button } from '@decade/ui/components/button'
 import {
@@ -11,6 +11,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@decade/ui/components/card'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@decade/ui/components/collapsible'
 import { Input } from '@decade/ui/components/input'
 import { Label } from '@decade/ui/components/label'
 import {
@@ -112,25 +117,33 @@ export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: W
           </Button>
         </form>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">What we deliver</h3>
-          <p className="text-sm text-muted-foreground">
-            On every fill involving you, we <code>POST</code> a JSON body for the{' '}
-            <code>trade.executed</code> event:
-          </p>
-          <pre
-            aria-label="Webhook payload example"
-            className="overflow-x-auto rounded-md border border-border bg-muted px-3 py-2 font-mono text-xs"
-          >
-            <code>{PAYLOAD_EXAMPLE}</code>
-          </pre>
-          <p className="text-sm text-muted-foreground">
-            <code>price</code> is the execution price in integer cents. The body is signed with
-            HMAC-SHA256 over its raw bytes using your secret, sent in the{' '}
-            <code>x-decade-signature</code> header (hex) — verify by recomputing the HMAC and
-            comparing. Delivery is retried up to 4 times on failure.
-          </p>
-        </div>
+        <Collapsible className="space-y-3">
+          <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-md text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+            What we deliver
+            <ChevronDown
+              className="size-4 transition-transform group-data-[state=open]:rotate-180"
+              aria-hidden="true"
+            />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              On every fill involving you, we <code>POST</code> a JSON body for the{' '}
+              <code>trade.executed</code> event:
+            </p>
+            <pre
+              aria-label="Webhook payload example"
+              className="overflow-x-auto rounded-md border border-border bg-muted px-3 py-2 font-mono text-xs"
+            >
+              <code>{PAYLOAD_EXAMPLE}</code>
+            </pre>
+            <p className="text-sm text-muted-foreground">
+              <code>price</code> is the execution price in integer cents. The body is signed with
+              HMAC-SHA256 over its raw bytes using your secret, sent in the{' '}
+              <code>x-decade-signature</code> header (hex) — verify by recomputing the HMAC and
+              comparing. Delivery is retried up to 4 times on failure.
+            </p>
+          </CollapsibleContent>
+        </Collapsible>
 
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground">Recent deliveries</h3>
