@@ -142,9 +142,9 @@ export function Terminal({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <h1 className="sr-only">Terminal</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">Terminal</h1>
 
-      <div className="grid min-h-0 flex-[3] gap-4 lg:grid-cols-2">
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-2">
         <section aria-label="Market" className="flex min-h-0 flex-col gap-4">
           <PriceDisplay
             symbol={symbol}
@@ -156,24 +156,21 @@ export function Terminal({
           <OrderBookPanel book={book ?? emptyBook} />
         </section>
 
-        <section aria-label="Order ticket" className="min-h-0 overflow-y-auto">
+        <section aria-label="You" className="flex min-h-0 flex-col gap-4">
           <OrderTicket
             symbol={symbol}
             defaultOwnerDocument={defaultOwnerDocument}
             onSubmit={submit}
           />
+          <YouPanel
+            cashBalanceCents={cashBalanceCents}
+            holdings={holdings}
+            orders={orders}
+            fills={fills}
+            onCancel={cancel}
+          />
         </section>
       </div>
-
-      <section aria-label="You" className="flex min-h-0 flex-[2] flex-col">
-        <YouPanel
-          cashBalanceCents={cashBalanceCents}
-          holdings={holdings}
-          orders={orders}
-          fills={fills}
-          onCancel={cancel}
-        />
-      </section>
     </div>
   )
 }
