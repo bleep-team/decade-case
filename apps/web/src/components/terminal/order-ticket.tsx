@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Send } from 'lucide-react'
+import { Clock, Loader2, Send, Zap } from 'lucide-react'
 import type { OrderSide, OrderType } from '@decade/types'
-import { dollarsToCents } from '@decade/types'
+import { dollarsToCents, formatUsd } from '@decade/types'
 import { Button } from '@decade/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@decade/ui/components/card'
 import { Input } from '@decade/ui/components/input'
 import { Label } from '@decade/ui/components/label'
+import { cn } from '@decade/ui/lib/utils'
 import { InfoTip } from './info-tip'
 
 /** The order payload the ticket hands to the submit action — money in cents. */
@@ -30,6 +31,10 @@ export interface OrderTicketProps {
   defaultOwnerDocument: string
   /** Called with the formed payload on submit. */
   onSubmit: (payload: OrderTicketPayload) => void | Promise<void>
+  /** Best resting bid in cents — used to preview whether a sell would cross. */
+  bestBidCents?: number | null
+  /** Best resting ask in cents — used to preview whether a buy would cross. */
+  bestAskCents?: number | null
 }
 
 /**
@@ -38,7 +43,13 @@ export interface OrderTicketProps {
  * {@link OrderTicketPayload} — converting the dollar price to integer cents and
  * an empty expiry to null — and hands it to `onSubmit`.
  */
-export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTicketProps) {
+export function OrderTicket({
+  symbol,
+  defaultOwnerDocument,
+  onSubmit,
+  bestBidCents = null,
+  bestAskCents = null,
+}: OrderTicketProps) {
   const [side, setSide] = useState<OrderSide>('bid')
   const [type, setType] = useState<OrderType>('limit')
   const [price, setPrice] = useState('')
@@ -49,6 +60,31 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
   const [pending, setPending] = useState(false)
 
   const isMarket = type === 'market'
+
+  // Preview whether the order will execute immediately or rest on the book, by
+  // comparing the entered limit price to the best resting price on the far side.
+  const limitCents = (() => {
+    if (isMarket || price === '') return null
+    const value = Number(price)
+    return Number.isFinite(value) && value > 0 ? dollarsToCents(value) : null
+  })()
+  const outcome: { text: string; crosses: boolean } | null = (() => {
+    if (isMarket) {
+      return { text: 'Fills immediately at the best available price.', crosses: true }
+    }
+    if (limitCents === null) return null
+    if (side === 'bid') {
+      return bestAskCents != null && limitCents >= bestAskCents
+        ? {
+            text: `Crosses now — fills at the best ask (${formatUsd(bestAskCents)}).`,
+            crosses: true,
+          }
+        : { text: 'Rests on the book until a seller matches.', crosses: false }
+    }
+    return bestBidCents != null && limitCents <= bestBidCents
+      ? { text: `Crosses now — fills at the best bid (${formatUsd(bestBidCents)}).`, crosses: true }
+      : { text: 'Rests on the book until a buyer matches.', crosses: false }
+  })()
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -229,6 +265,23 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
               />
             </div>
           </div>
+
+          {outcome ? (
+            <p
+              className={cn(
+                'flex items-center gap-1.5 text-xs',
+                outcome.crosses ? 'text-brand' : 'text-muted-foreground',
+              )}
+              aria-live="polite"
+            >
+              {outcome.crosses ? (
+                <Zap className="size-3.5 shrink-0" aria-hidden="true" />
+              ) : (
+                <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+              )}
+              {outcome.text}
+            </p>
+          ) : null}
 
           <Button type="submit" size="sm" className="w-full" disabled={pending}>
             {pending ? (

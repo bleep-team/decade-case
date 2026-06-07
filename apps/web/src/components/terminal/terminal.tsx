@@ -173,6 +173,8 @@ export function Terminal({
             symbol={symbol}
             defaultOwnerDocument={defaultOwnerDocument}
             onSubmit={submit}
+            bestBidCents={book?.bids[0]?.price ?? null}
+            bestAskCents={book?.asks[0]?.price ?? null}
           />
           <YouPanel
             cashBalanceCents={cashBalanceCents}

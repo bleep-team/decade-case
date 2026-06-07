@@ -46,6 +46,10 @@ export function OrderBookPanel({ book, loading = false }: OrderBookPanelProps) {
             </div>
           ) : (
             <ScrollArea className="min-h-0 flex-1">
+              <div className="mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <span className="size-1.5 rounded-[2px] bg-loss" aria-hidden="true" />
+                Asks
+              </div>
               <div className="space-y-px">
                 {asksHighToLow.map((level) => (
                   <BookRow key={`ask-${level.price}`} level={level} side="ask" />
@@ -67,6 +71,10 @@ export function OrderBookPanel({ book, loading = false }: OrderBookPanelProps) {
                 </span>
               </div>
 
+              <div className="mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <span className="size-1.5 rounded-[2px] bg-gain" aria-hidden="true" />
+                Bids
+              </div>
               <div className="space-y-px">
                 {book.bids.map((level) => (
                   <BookRow key={`bid-${level.price}`} level={level} side="bid" />
