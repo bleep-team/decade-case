@@ -89,15 +89,16 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
   }
 
   return (
-    <Card>
+    <Card className="flex min-h-0 flex-1 flex-col">
       <CardHeader>
         <CardTitle>Order ticket</CardTitle>
       </CardHeader>
-      <CardContent>
-        <form className="space-y-3" noValidate onSubmit={handleSubmit}>
+      <CardContent className="min-h-0 flex-1 overflow-y-auto">
+        <form className="space-y-2" noValidate onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-2" role="group" aria-label="Side">
             <Button
               type="button"
+              size="sm"
               variant={side === 'bid' ? 'default' : 'outline'}
               aria-pressed={side === 'bid'}
               onClick={() => setSide('bid')}
@@ -106,6 +107,7 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
             </Button>
             <Button
               type="button"
+              size="sm"
               variant={side === 'ask' ? 'default' : 'outline'}
               aria-pressed={side === 'ask'}
               onClick={() => setSide('ask')}
@@ -117,6 +119,7 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
           <div className="grid grid-cols-2 gap-2" role="group" aria-label="Order type">
             <Button
               type="button"
+              size="sm"
               variant={type === 'limit' ? 'default' : 'outline'}
               aria-pressed={type === 'limit'}
               onClick={() => setType('limit')}
@@ -125,6 +128,7 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
             </Button>
             <Button
               type="button"
+              size="sm"
               variant={type === 'market' ? 'default' : 'outline'}
               aria-pressed={type === 'market'}
               onClick={() => setType('market')}
@@ -133,7 +137,7 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
               <Label htmlFor="ticket-quantity">Quantity</Label>
               <Input
@@ -185,7 +189,7 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
               <div className="flex items-center gap-1.5">
                 <Label htmlFor="ticket-expiry">Expiry</Label>
@@ -219,7 +223,7 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={pending}>
+          <Button type="submit" size="sm" className="w-full" disabled={pending}>
             {pending ? (
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
             ) : (
