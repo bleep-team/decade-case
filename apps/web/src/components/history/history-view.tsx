@@ -1,11 +1,19 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Receipt, ScrollText, type LucideIcon } from 'lucide-react'
 import type { OrderSide, OrderStatus, OrderType } from '@decade/types'
 import { formatUsd } from '@decade/types'
 import { Badge } from '@decade/ui/components/badge'
 import { Button } from '@decade/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@decade/ui/components/card'
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@decade/ui/components/empty'
+import { Skeleton } from '@decade/ui/components/skeleton'
 import {
   Table,
   TableBody,
@@ -44,6 +52,8 @@ export interface HistoryTradeRow {
 export interface HistoryViewProps {
   orders: HistoryOrderRow[]
   trades: HistoryTradeRow[]
+  /** First-paint state: show skeleton rows instead of an empty record. */
+  loading?: boolean
   /** Current 1-based page number, shown between the pagination controls. */
   page: number
   /** Whether a previous page exists. */
@@ -54,6 +64,40 @@ export interface HistoryViewProps {
   onNextPage: () => void
   /** Initial tab; defaults to Orders. */
   defaultTab?: 'orders' | 'trades'
+}
+
+/** Placeholder rows shown while the first page loads. */
+function HistorySkeleton() {
+  return (
+    <div className="space-y-2 py-2" aria-hidden="true">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Skeleton key={i} className="h-8 w-full" />
+      ))}
+    </div>
+  )
+}
+
+/** A centered empty state for a history tab with no rows on this page. */
+function HistoryEmpty({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: LucideIcon
+  title: string
+  description: string
+}) {
+  return (
+    <Empty className="border-0 py-12">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Icon aria-hidden="true" />
+        </EmptyMedia>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  )
 }
 
 /** Previous / page / Next controls shared by both tabs. */
@@ -102,6 +146,7 @@ function PaginationControls({
 export function HistoryView({
   orders,
   trades,
+  loading = false,
   page,
   hasPrev,
   hasNext,
@@ -133,27 +178,29 @@ export function HistoryView({
           </TabsList>
 
           <TabsContent value="orders">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order</TableHead>
-                  <TableHead>Symbol</TableHead>
-                  <TableHead>Side</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead className="text-right">Remaining</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.length === 0 ? (
+            {loading ? (
+              <HistorySkeleton />
+            ) : orders.length === 0 ? (
+              <HistoryEmpty
+                icon={ScrollText}
+                title="No orders yet"
+                description="Orders you submit from the terminal or API are recorded here."
+              />
+            ) : (
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="text-muted-foreground">
-                      No orders yet.
-                    </TableCell>
+                    <TableHead>Order</TableHead>
+                    <TableHead>Symbol</TableHead>
+                    <TableHead>Side</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead className="text-right">Remaining</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
                   </TableRow>
-                ) : (
-                  orders.map((o) => (
+                </TableHeader>
+                <TableBody>
+                  {orders.map((o) => (
                     <TableRow key={o.id}>
                       <TableCell className="font-mono text-xs">{o.id}</TableCell>
                       <TableCell>{o.symbol}</TableCell>
@@ -169,34 +216,36 @@ export function HistoryView({
                         {formatTime(o.createdAt)}
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
             {pagination}
           </TabsContent>
 
           <TabsContent value="trades">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Trade</TableHead>
-                  <TableHead>Symbol</TableHead>
-                  <TableHead>Side</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead className="text-right">Quantity</TableHead>
-                  <TableHead>Executed</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {trades.length === 0 ? (
+            {loading ? (
+              <HistorySkeleton />
+            ) : trades.length === 0 ? (
+              <HistoryEmpty
+                icon={Receipt}
+                title="No trades yet"
+                description="Executions against your orders are recorded here."
+              />
+            ) : (
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="text-muted-foreground">
-                      No trades yet.
-                    </TableCell>
+                    <TableHead>Trade</TableHead>
+                    <TableHead>Symbol</TableHead>
+                    <TableHead>Side</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead className="text-right">Quantity</TableHead>
+                    <TableHead>Executed</TableHead>
                   </TableRow>
-                ) : (
-                  trades.map((t) => (
+                </TableHeader>
+                <TableBody>
+                  {trades.map((t) => (
                     <TableRow key={t.tradeId}>
                       <TableCell className="font-mono text-xs">{t.tradeId}</TableCell>
                       <TableCell>{t.symbol}</TableCell>
@@ -207,10 +256,10 @@ export function HistoryView({
                         {formatTime(t.executedAt)}
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
             {pagination}
           </TabsContent>
         </Tabs>

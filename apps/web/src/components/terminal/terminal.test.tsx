@@ -70,7 +70,7 @@ describe('Terminal symbol selection', () => {
       />,
     )
 
-    expect(await screen.findByText('$1000000.00')).not.toBeNull()
+    expect(await screen.findByText('$1,000,000.00')).not.toBeNull()
   })
 
   it('submits an order for the currently selected symbol', () => {

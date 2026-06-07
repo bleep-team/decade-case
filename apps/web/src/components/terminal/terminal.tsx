@@ -51,9 +51,15 @@ interface BalanceResponse {
   positions: Array<{ symbol: string; quantity: number }>
 }
 
-/** Poll a JSON endpoint on an interval; best-effort, returns the latest body. */
-function usePolledJson<T>(url: string, intervalMs = 1000): T | null {
+/**
+ * Poll a JSON endpoint on an interval; best-effort. Returns the latest body and
+ * a `loaded` flag (true after the first successful response, so the UI can show
+ * a skeleton on first paint and never flash an empty state during load). `loaded`
+ * is not reset across symbol switches, so switching never re-skeletons.
+ */
+function usePolledJson<T>(url: string, intervalMs = 1000): readonly [T | null, boolean] {
   const [data, setData] = useState<T | null>(null)
+  const [loaded, setLoaded] = useState(false)
   useEffect(() => {
     let active = true
     const tick = async () => {
@@ -61,7 +67,10 @@ function usePolledJson<T>(url: string, intervalMs = 1000): T | null {
         const res = await fetch(url)
         if (!res.ok) return
         const json = (await res.json()) as T
-        if (active) setData(json)
+        if (active) {
+          setData(json)
+          setLoaded(true)
+        }
       } catch {
         // Polling is best-effort; the terminal keeps its last snapshot.
       }
@@ -73,7 +82,7 @@ function usePolledJson<T>(url: string, intervalMs = 1000): T | null {
       clearInterval(handle)
     }
   }, [url, intervalMs])
-  return data
+  return [data, loaded] as const
 }
 
 /**
@@ -92,11 +101,13 @@ export function Terminal({
 }: TerminalProps) {
   const [symbol, setSymbol] = useUrlState('symbol', symbols[0] ?? '')
 
-  const price = usePolledJson<PriceResponse>(`/api/stocks/${symbol}/price`)
-  const book = usePolledJson<OrderBookSnapshot>(`/api/stocks/${symbol}/book`)
-  const ordersData = usePolledJson<OrdersResponse>(`/api/orders`)
-  const tradesData = usePolledJson<TradesResponse>(`/api/trades`)
-  const balanceData = usePolledJson<BalanceResponse>(`/api/brokers/${brokerId}/balance`)
+  const [price, priceLoaded] = usePolledJson<PriceResponse>(`/api/stocks/${symbol}/price`)
+  const [book, bookLoaded] = usePolledJson<OrderBookSnapshot>(`/api/stocks/${symbol}/book`)
+  const [ordersData] = usePolledJson<OrdersResponse>(`/api/orders`)
+  const [tradesData] = usePolledJson<TradesResponse>(`/api/trades`)
+  const [balanceData, balanceLoaded] = usePolledJson<BalanceResponse>(
+    `/api/brokers/${brokerId}/balance`,
+  )
 
   // Delta is measured against the first price observed this session.
   const sessionOpen = useRef<number | null>(null)
@@ -152,8 +163,9 @@ export function Terminal({
             onSymbolChange={setSymbol}
             priceCents={priceCents}
             deltaCents={deltaCents}
+            loading={!priceLoaded}
           />
-          <OrderBookPanel book={book ?? emptyBook} />
+          <OrderBookPanel book={book ?? emptyBook} loading={!bookLoaded} />
         </section>
 
         <section aria-label="You" className="flex min-h-0 flex-col gap-4">
@@ -168,6 +180,7 @@ export function Terminal({
             orders={orders}
             fills={fills}
             onCancel={cancel}
+            loading={!balanceLoaded}
           />
         </section>
       </div>

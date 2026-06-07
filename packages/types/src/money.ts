@@ -15,9 +15,20 @@ export function centsToDollars(cents: Cents): number {
   return cents / 100
 }
 
-/** Format integer cents as a USD string (1050 -> "$10.50"). */
+/**
+ * USD formatter pinned to en-US so server and client render identically (no
+ * hydration drift) and large figures get thousand separators.
+ */
+const usdFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
+/** Format integer cents as a grouped USD string (100000000 -> "$1,000,000.00"). */
 export function formatUsd(cents: Cents): string {
-  return `$${centsToDollars(cents).toFixed(2)}`
+  return usdFormatter.format(centsToDollars(cents))
 }
 
 /** Notional value of `quantity` shares at `price` cents each. */

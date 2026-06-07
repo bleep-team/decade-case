@@ -56,6 +56,7 @@ export function History() {
   const page = Math.max(1, Number.parseInt(pageParam, 10) || 1)
   const [orders, setOrders] = useState<HistoryOrderRow[]>([])
   const [trades, setTrades] = useState<HistoryTradeRow[]>([])
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -91,6 +92,7 @@ export function History() {
           executedAt: t.executedAt,
         })),
       )
+      setLoaded(true)
     }
 
     void load()
@@ -105,6 +107,7 @@ export function History() {
     <HistoryView
       orders={orders}
       trades={trades}
+      loading={!loaded}
       page={page}
       hasPrev={page > 1}
       hasNext={hasNext}

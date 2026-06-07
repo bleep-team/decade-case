@@ -2,11 +2,14 @@ import type { OrderBookLevel, OrderBookSnapshot } from '@decade/types'
 import { formatUsd } from '@decade/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@decade/ui/components/card'
 import { ScrollArea } from '@decade/ui/components/scroll-area'
+import { Skeleton } from '@decade/ui/components/skeleton'
 import { cn } from '@decade/ui/lib/utils'
 import { InfoTip } from './info-tip'
 
 export interface OrderBookPanelProps {
   book: OrderBookSnapshot
+  /** First-paint state: show skeleton rows instead of an empty book. */
+  loading?: boolean
 }
 
 /**
@@ -16,7 +19,7 @@ export interface OrderBookPanelProps {
  * descending so the best (lowest) ask sits just above the spread; bids descend
  * so the best (highest) bid sits just below it.
  */
-export function OrderBookPanel({ book }: OrderBookPanelProps) {
+export function OrderBookPanel({ book, loading = false }: OrderBookPanelProps) {
   const asksHighToLow = [...book.asks].reverse()
   const bestAsk = book.asks[0]?.price ?? null
   const bestBid = book.bids[0]?.price ?? null
@@ -35,34 +38,42 @@ export function OrderBookPanel({ book }: OrderBookPanelProps) {
             <span className="text-right">Orders</span>
           </div>
 
-          <ScrollArea className="min-h-0 flex-1">
-            <div className="space-y-px">
-              {asksHighToLow.map((level) => (
-                <BookRow key={`ask-${level.price}`} level={level} side="ask" />
+          {loading ? (
+            <div className="min-h-0 flex-1 space-y-1.5 pt-1" aria-hidden="true">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <Skeleton key={i} className="h-5 w-full" />
               ))}
             </div>
+          ) : (
+            <ScrollArea className="min-h-0 flex-1">
+              <div className="space-y-px">
+                {asksHighToLow.map((level) => (
+                  <BookRow key={`ask-${level.price}`} level={level} side="ask" />
+                ))}
+              </div>
 
-            <div
-              data-testid="book-spread"
-              className="my-1 flex items-center justify-between border-y border-border py-1 text-xs text-muted-foreground"
-            >
-              <span className="flex items-center gap-1">
-                Spread
-                <InfoTip label="More information">
-                  The gap between the best (lowest) ask and the best (highest) bid.
-                </InfoTip>
-              </span>
-              <span className="font-mono text-foreground">
-                {spread !== null ? formatUsd(spread) : '—'}
-              </span>
-            </div>
+              <div
+                data-testid="book-spread"
+                className="my-1 flex items-center justify-between border-y border-border py-1 text-xs text-muted-foreground"
+              >
+                <span className="flex items-center gap-1">
+                  Spread
+                  <InfoTip label="More information">
+                    The gap between the best (lowest) ask and the best (highest) bid.
+                  </InfoTip>
+                </span>
+                <span className="font-mono text-foreground">
+                  {spread !== null ? formatUsd(spread) : '—'}
+                </span>
+              </div>
 
-            <div className="space-y-px">
-              {book.bids.map((level) => (
-                <BookRow key={`bid-${level.price}`} level={level} side="bid" />
-              ))}
-            </div>
-          </ScrollArea>
+              <div className="space-y-px">
+                {book.bids.map((level) => (
+                  <BookRow key={`bid-${level.price}`} level={level} side="bid" />
+                ))}
+              </div>
+            </ScrollArea>
+          )}
         </div>
       </CardContent>
     </Card>
