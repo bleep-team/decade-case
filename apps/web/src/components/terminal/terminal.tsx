@@ -7,7 +7,6 @@ import { useUrlState } from '@/lib/use-url-state'
 import { OrderBookPanel } from './order-book-panel'
 import { OrderTicket, type OrderTicketPayload } from './order-ticket'
 import { PriceDisplay } from './price-display'
-import { SymbolSelect } from './symbol-select'
 import { FillRow, HoldingRow, OrderRow, YouPanel } from './you-panel'
 
 export interface TerminalProps {
@@ -143,32 +142,38 @@ export function Terminal({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Terminal</h1>
-        <SymbolSelect symbols={symbols} value={symbol} onChange={setSymbol} />
-      </div>
+      <h1 className="sr-only">Terminal</h1>
 
-      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-2">
+      <div className="grid min-h-0 flex-[3] gap-4 lg:grid-cols-2">
         <section aria-label="Market" className="flex min-h-0 flex-col gap-4">
-          <PriceDisplay symbol={symbol} priceCents={priceCents} deltaCents={deltaCents} />
+          <PriceDisplay
+            symbol={symbol}
+            symbols={symbols}
+            onSymbolChange={setSymbol}
+            priceCents={priceCents}
+            deltaCents={deltaCents}
+          />
           <OrderBookPanel book={book ?? emptyBook} />
         </section>
 
-        <section aria-label="You" className="flex min-h-0 flex-col gap-4">
+        <section aria-label="Order ticket" className="min-h-0 overflow-y-auto">
           <OrderTicket
             symbol={symbol}
             defaultOwnerDocument={defaultOwnerDocument}
             onSubmit={submit}
           />
-          <YouPanel
-            cashBalanceCents={cashBalanceCents}
-            holdings={holdings}
-            orders={orders}
-            fills={fills}
-            onCancel={cancel}
-          />
         </section>
       </div>
+
+      <section aria-label="You" className="flex min-h-0 flex-[2] flex-col">
+        <YouPanel
+          cashBalanceCents={cashBalanceCents}
+          holdings={holdings}
+          orders={orders}
+          fills={fills}
+          onCancel={cancel}
+        />
+      </section>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { formatUsd } from '@decade/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@decade/ui/components/card'
 import { cn } from '@decade/ui/lib/utils'
 import { InfoTip } from './info-tip'
+import { SymbolSelect } from './symbol-select'
 
 export interface PriceDisplayProps {
   symbol: string
@@ -10,6 +11,10 @@ export interface PriceDisplayProps {
   priceCents: number | null
   /** Signed change in cents versus the session reference, or null. */
   deltaCents: number | null
+  /** Selectable instruments; when given, the title becomes a symbol picker. */
+  symbols?: string[]
+  /** Called with the newly-selected symbol (paired with `symbols`). */
+  onSymbolChange?: (symbol: string) => void
 }
 
 type Direction = 'up' | 'down' | 'flat'
@@ -32,14 +37,24 @@ function priceDirection(deltaCents: number | null): Direction {
  * the delta carries the `--gain` / `--loss` data tokens and a trend icon so a
  * rising or falling market reads at a glance.
  */
-export function PriceDisplay({ symbol, priceCents, deltaCents }: PriceDisplayProps) {
+export function PriceDisplay({
+  symbol,
+  priceCents,
+  deltaCents,
+  symbols,
+  onSymbolChange,
+}: PriceDisplayProps) {
   const direction = priceDirection(deltaCents)
   const Icon = TREND_ICON[direction]
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{symbol}</CardTitle>
+        {symbols && onSymbolChange ? (
+          <SymbolSelect symbols={symbols} value={symbol} onChange={onSymbolChange} />
+        ) : (
+          <CardTitle>{symbol}</CardTitle>
+        )}
       </CardHeader>
       <CardContent>
         <div className="flex items-baseline gap-3">

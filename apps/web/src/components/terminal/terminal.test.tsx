@@ -24,7 +24,7 @@ afterEach(() => {
 })
 
 describe('Terminal symbol selection', () => {
-  it('changes the active symbol and the panels read it', () => {
+  it('changes the active symbol via the market-panel picker', () => {
     render(
       <Terminal
         brokerId="broker-1"
@@ -35,14 +35,14 @@ describe('Terminal symbol selection', () => {
       />,
     )
 
-    // The market panels (price + book) title themselves with the active symbol.
+    // The symbol picker lives in the Market column (the price card header).
     const market = screen.getByRole('region', { name: 'Market' })
-    expect(within(market).getByText('AAPL')).not.toBeNull()
+    const select = within(market).getByLabelText('Symbol') as HTMLSelectElement
+    expect(select.value).toBe('AAPL')
 
-    fireEvent.change(screen.getByLabelText('Symbol'), { target: { value: 'TSLA' } })
+    fireEvent.change(select, { target: { value: 'TSLA' } })
 
-    expect(within(market).getByText('TSLA')).not.toBeNull()
-    expect(within(market).queryByText('AAPL')).toBeNull()
+    expect(select.value).toBe('TSLA')
   })
 
   it('displays the broker cash balance from the balance endpoint', async () => {
