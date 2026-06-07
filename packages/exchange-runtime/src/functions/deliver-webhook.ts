@@ -2,7 +2,7 @@ import { and, eq, inArray } from 'drizzle-orm'
 import { trades, webhookDeliveries, webhookEndpoints } from '@decade/db'
 import { inngest } from '../client.js'
 import { getDb } from '../db.js'
-import { buildWebhookPayload, webhookHeaders } from '../webhook.js'
+import { attemptWebhookDelivery, buildWebhookPayload } from '../webhook.js'
 
 export const deliverWebhookFn = inngest.createFunction(
   { id: 'deliver-webhook', retries: 4 },
@@ -47,24 +47,29 @@ export const deliverWebhookFn = inngest.createFunction(
 
     const body = JSON.stringify(target.payload)
     let delivered = 0
+    let failed = 0
 
+    // Each delivery records a row for its outcome — success OR failure (with the
+    // attempt count and last error) — so "Recent deliveries" reflects failures too.
     for (const endpoint of target.endpoints) {
-      await step.run(`deliver-${endpoint.id}`, async () => {
-        const response = await fetch(endpoint.url, {
-          method: 'POST',
-          headers: webhookHeaders(endpoint.secret, body),
-          body,
+      const outcome = await step.run(`deliver-${endpoint.id}`, async () => {
+        const result = await attemptWebhookDelivery(endpoint, body)
+        await getDb().insert(webhookDeliveries).values({
+          endpointId: endpoint.id,
+          tradeId,
+          status: result.status,
+          attempts: result.attempts,
+          lastError: result.lastError,
         })
-        if (!response.ok) {
-          throw new Error(`Webhook ${endpoint.id} failed with ${response.status}`)
-        }
-        await getDb()
-          .insert(webhookDeliveries)
-          .values({ endpointId: endpoint.id, tradeId, status: 'delivered', attempts: 1 })
+        return result
       })
-      delivered += 1
+      if (outcome.status === 'delivered') {
+        delivered += 1
+      } else {
+        failed += 1
+      }
     }
 
-    return { delivered }
+    return { delivered, failed }
   },
 )
