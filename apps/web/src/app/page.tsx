@@ -34,16 +34,32 @@ function Shell({ children, className }: { children: React.ReactNode; className?:
   return <div className={cn('mx-auto w-full max-w-6xl px-6', className)}>{children}</div>
 }
 
+const NAV_LINKS = [
+  { href: '#platform', label: 'Platform' },
+  { href: '#developers', label: 'Developers' },
+]
+
 function SiteHeader() {
   return (
     <header className="sticky top-4 z-50 px-4">
-      <nav className="mx-auto flex h-[68px] max-w-5xl items-center justify-between gap-2 rounded-full border border-white/10 bg-white/[0.06] pl-5 pr-2 shadow-lg shadow-black/30 backdrop-blur-md sm:pl-7 sm:pr-2.5">
+      <nav className="relative mx-auto flex h-[68px] max-w-5xl items-center justify-between gap-2 rounded-full border border-white/10 bg-white/[0.06] pl-5 pr-2 shadow-lg shadow-black/30 backdrop-blur-md sm:pl-7 sm:pr-2.5">
         <Link
           href="/"
           className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/40"
         >
           <Wordmark />
         </Link>
+        <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="rounded-full px-3.5 py-2 text-sm text-white/60 outline-none transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
         <Link href="/sign-up">
           <Button size="lg" className="rounded-full">
             Get Started
@@ -80,7 +96,15 @@ function Hero() {
             the seller&rsquo;s price, in strict price-time order, down to the last share.
           </p>
         </Reveal>
-        <Reveal delay={240} className="flex flex-wrap items-center justify-center gap-3">
+        <Reveal delay={240} className="relative flex flex-wrap items-center justify-center gap-3">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 -inset-y-16 -z-10"
+            style={{
+              background:
+                'radial-gradient(50% 60% at 50% 50%, rgba(240,168,104,0.14), transparent 70%)',
+            }}
+          />
           <Link href="/sign-up">
             <Button size="lg" className="rounded-full">
               Create a Broker Account

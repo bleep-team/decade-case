@@ -74,7 +74,15 @@ export function EditorMock({ fontClass, className }: { fontClass?: string; class
           <Tree label="price.ts" depth={1} />
           <Tree label="order.ts" depth={0} />
         </aside>
-        <pre className="min-w-0 flex-1 overflow-x-auto p-4">
+        <pre
+          className="min-w-0 flex-1 overflow-x-auto p-4"
+          style={{
+            // Fade the right edge so lines that run past the card read as
+            // "code continues" rather than a hard clip.
+            maskImage: 'linear-gradient(to right, black calc(100% - 2.5rem), transparent)',
+            WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 2.5rem), transparent)',
+          }}
+        >
           <code>
             {lines.map((ln, i) => (
               <div key={i} className="grid grid-cols-[1.75rem_1fr] gap-2">
