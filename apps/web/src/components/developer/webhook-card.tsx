@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, Save } from 'lucide-react'
+import { Check, ChevronDown, Copy, Save } from 'lucide-react'
 import { Badge } from '@decade/ui/components/badge'
 import { Button } from '@decade/ui/components/button'
 import {
@@ -18,6 +18,7 @@ import {
 } from '@decade/ui/components/collapsible'
 import { Input } from '@decade/ui/components/input'
 import { Label } from '@decade/ui/components/label'
+import { CodeBlock } from './code-block'
 import {
   Table,
   TableBody,
@@ -73,6 +74,12 @@ const PAYLOAD_EXAMPLE = `{
 export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: WebhookCardProps) {
   const [url, setUrl] = useState(defaultUrl)
   const [secret, setSecret] = useState(defaultSecret)
+  const [copiedSecret, setCopiedSecret] = useState(false)
+
+  const handleCopySecret = async () => {
+    await navigator.clipboard?.writeText(secret)
+    setCopiedSecret(true)
+  }
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
@@ -103,13 +110,29 @@ export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: W
           </div>
           <div className="space-y-2">
             <Label htmlFor="webhook-secret">Signing secret</Label>
-            <Input
-              id="webhook-secret"
-              autoComplete="off"
-              spellCheck={false}
-              value={secret}
-              onChange={(e) => setSecret(e.target.value)}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="webhook-secret"
+                className="flex-1"
+                autoComplete="off"
+                spellCheck={false}
+                value={secret}
+                onChange={(e) => setSecret(e.target.value)}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label="Copy to clipboard"
+                onClick={() => void handleCopySecret()}
+              >
+                {copiedSecret ? (
+                  <Check className="size-4" aria-hidden="true" />
+                ) : (
+                  <Copy className="size-4" aria-hidden="true" />
+                )}
+              </Button>
+            </div>
           </div>
           <Button type="submit" size="sm">
             <Save className="size-4" aria-hidden="true" />
@@ -118,10 +141,10 @@ export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: W
         </form>
 
         <Collapsible className="space-y-3">
-          <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-md text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+          <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
             What we deliver
             <ChevronDown
-              className="size-4 transition-transform group-data-[state=open]:rotate-180"
+              className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180"
               aria-hidden="true"
             />
           </CollapsibleTrigger>
@@ -130,12 +153,11 @@ export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: W
               On every fill involving you, we <code>POST</code> a JSON body for the{' '}
               <code>trade.executed</code> event:
             </p>
-            <pre
-              aria-label="Webhook payload example"
-              className="overflow-x-auto rounded-md border border-border bg-muted px-3 py-2 font-mono text-xs"
-            >
-              <code>{PAYLOAD_EXAMPLE}</code>
-            </pre>
+            <CodeBlock
+              label="trade.executed"
+              code={PAYLOAD_EXAMPLE}
+              ariaLabel="Webhook payload example"
+            />
             <p className="text-sm text-muted-foreground">
               <code>price</code> is the execution price in integer cents. The body is signed with
               HMAC-SHA256 over its raw bytes using your secret, sent in the{' '}

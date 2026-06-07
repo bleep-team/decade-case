@@ -1,5 +1,6 @@
 'use client'
 
+import { Braces, KeyRound, Webhook } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@decade/ui/components/tabs'
 import { rotateApiKeyAction, saveWebhookAction } from '@/app/actions/developer'
 import { useUrlState } from '@/lib/use-url-state'
@@ -46,9 +47,18 @@ export function Developer({
   return (
     <Tabs value={tab} onValueChange={setTab}>
       <TabsList>
-        <TabsTrigger value="api-key">API key</TabsTrigger>
-        <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-        <TabsTrigger value="mcp-rest">MCP &amp; REST</TabsTrigger>
+        <TabsTrigger value="api-key">
+          <KeyRound className="size-4" aria-hidden="true" />
+          API key
+        </TabsTrigger>
+        <TabsTrigger value="webhooks">
+          <Webhook className="size-4" aria-hidden="true" />
+          Webhooks
+        </TabsTrigger>
+        <TabsTrigger value="mcp-rest">
+          <Braces className="size-4" aria-hidden="true" />
+          MCP &amp; REST
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="api-key">

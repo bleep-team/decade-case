@@ -5,8 +5,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@decade/ui/components/card'
-import { cn } from '@decade/ui/lib/utils'
 import { CodeBlock } from './code-block'
+import { RestEndpoints } from './rest-endpoints'
 
 /**
  * The exchange's MCP tool surface, mirroring `registerExchangeTools` in
@@ -30,17 +30,6 @@ const TOOL_DESCRIPTIONS: Record<(typeof MCP_TOOLS)[number], string> = {
   get_broker_balance: 'Return your cash balance and share positions.',
 }
 
-/** REST endpoints the API key reaches, mirroring the routes under `/api`. */
-const REST_ENDPOINTS: Array<{ method: string; path: string; summary: string }> = [
-  { method: 'POST', path: '/api/orders', summary: 'Submit a bid/ask order.' },
-  { method: 'GET', path: '/api/orders/:id', summary: 'Get an order by id.' },
-  { method: 'GET', path: '/api/orders', summary: 'List your orders.' },
-  { method: 'GET', path: '/api/trades', summary: 'List your trades.' },
-  { method: 'GET', path: '/api/stocks/:symbol/book', summary: 'Order book for a symbol.' },
-  { method: 'GET', path: '/api/stocks/:symbol/price', summary: 'Current price for a symbol.' },
-  { method: 'GET', path: '/api/brokers/:id/balance', summary: 'Cash balance and positions.' },
-]
-
 export interface IntegrationCardProps {
   /** The exchange origin; the MCP endpoint and REST examples are built from it. */
   baseUrl: string
@@ -52,22 +41,6 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
     <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
       {children}
     </h3>
-  )
-}
-
-/** An HTTP method pill — POST carries the brand accent, reads start as muted. */
-function MethodBadge({ method }: { method: string }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex w-11 shrink-0 justify-center rounded border px-1 py-0.5 font-mono text-[0.625rem] font-semibold uppercase tracking-wide',
-        method === 'POST'
-          ? 'border-brand/30 bg-brand/10 text-brand'
-          : 'border-border bg-muted text-muted-foreground',
-      )}
-    >
-      {method}
-    </span>
   )
 }
 
@@ -120,20 +93,7 @@ export function IntegrationCard({ baseUrl }: IntegrationCardProps) {
 
         <section className="space-y-2">
           <SectionHeading>REST endpoints</SectionHeading>
-          <div className="divide-y divide-border overflow-hidden rounded-md border border-border">
-            {REST_ENDPOINTS.map((endpoint) => (
-              <div
-                key={`${endpoint.method} ${endpoint.path}`}
-                className="flex items-center gap-3 px-3 py-2"
-              >
-                <MethodBadge method={endpoint.method} />
-                <code className="font-mono text-sm text-foreground">{endpoint.path}</code>
-                <span className="ml-auto hidden text-sm text-muted-foreground md:block">
-                  {endpoint.summary}
-                </span>
-              </div>
-            ))}
-          </div>
+          <RestEndpoints />
         </section>
 
         <section className="space-y-2">
