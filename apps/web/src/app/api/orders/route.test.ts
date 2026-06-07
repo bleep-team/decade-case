@@ -5,12 +5,15 @@ import { createTestDb, type TestDb } from '@decade/db/testing'
 
 let harness: TestDb
 const sendSpy = vi.fn()
+// Controls the mocked buying-power check so both branches can be exercised.
+let affordableStub = true
 
 // The runtime singleton normally reads DATABASE_URL; point it at the in-process
 // pglite harness and stub the Inngest hand-off so the route runs end to end.
 vi.mock('@decade/exchange-runtime', () => ({
   getDb: () => harness.db,
   inngest: { send: (...args: unknown[]) => sendSpy(...args) },
+  hasBuyingPowerFor: async () => affordableStub,
 }))
 
 // Stand in for a Clerk session — the route should treat this user as the broker.
@@ -30,6 +33,7 @@ describe('POST /api/orders', () => {
   beforeEach(async () => {
     await harness.reset()
     sendSpy.mockClear()
+    affordableStub = true
   })
 
   function postOrder(body: unknown): Promise<Response> {
@@ -76,5 +80,27 @@ describe('POST /api/orders', () => {
     expect(sendSpy).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'order/submitted', data: { orderId, symbol: 'AAPL' } }),
     )
+  })
+
+  it('records an underfunded buy as rejected and never hands it to the matcher', async () => {
+    affordableStub = false
+
+    const response = await postOrder({
+      ownerDocument: 'doc_1',
+      symbol: 'AAPL',
+      side: 'bid',
+      type: 'limit',
+      limitPrice: 1000,
+      quantity: 10,
+    })
+
+    expect(response.status).toBe(201)
+    const { orderId, status } = await response.json()
+    expect(status).toBe('rejected')
+
+    const [order] = await harness.db.select().from(orders).where(eq(orders.id, orderId))
+    expect(order?.status).toBe('rejected')
+    // A rejected order never enters the book, so the matcher is not notified.
+    expect(sendSpy).not.toHaveBeenCalled()
   })
 })

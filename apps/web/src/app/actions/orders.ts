@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { resolveOrCreateBroker } from '@decade/auth'
 import { requireUserId } from '@decade/auth/server'
 import { orders } from '@decade/db'
-import { getDb, inngest } from '@decade/exchange-runtime'
+import { getDb, hasBuyingPowerFor, inngest } from '@decade/exchange-runtime'
 import type { OrderTicketPayload } from '@/components/terminal/order-ticket'
 import { submitOrderSchema } from '@/lib/validation'
 
@@ -29,6 +29,16 @@ export async function submitOrderAction(payload: OrderTicketPayload): Promise<{ 
   const db = getDb()
   const broker = await resolveOrCreateBroker(db, userId)
 
+  const limitPriceCents = parsed.type === 'market' ? null : (parsed.limitPrice ?? null)
+  // A limit buy beyond the broker's free cash is recorded `rejected` and never
+  // emitted to the matcher, mirroring `POST /api/orders`.
+  const affordable = await hasBuyingPowerFor(db, broker, {
+    side: parsed.side,
+    type: parsed.type,
+    limitPriceCents,
+    quantity: parsed.quantity,
+  })
+
   const [inserted] = await db
     .insert(orders)
     .values({
@@ -37,10 +47,10 @@ export async function submitOrderAction(payload: OrderTicketPayload): Promise<{ 
       symbol: parsed.symbol,
       side: parsed.side,
       type: parsed.type,
-      limitPriceCents: parsed.type === 'market' ? null : (parsed.limitPrice ?? null),
+      limitPriceCents,
       quantity: parsed.quantity,
       remaining: parsed.quantity,
-      status: 'open',
+      status: affordable ? 'open' : 'rejected',
       expiresAt: parsed.expiresAt ? new Date(parsed.expiresAt) : null,
     })
     .returning({ id: orders.id })
@@ -49,10 +59,12 @@ export async function submitOrderAction(payload: OrderTicketPayload): Promise<{ 
     throw new Error('order insert failed')
   }
 
-  await inngest.send({
-    name: 'order/submitted',
-    data: { orderId: inserted.id, symbol: parsed.symbol },
-  })
+  if (affordable) {
+    await inngest.send({
+      name: 'order/submitted',
+      data: { orderId: inserted.id, symbol: parsed.symbol },
+    })
+  }
 
   return { orderId: inserted.id }
 }

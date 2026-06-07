@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { desc, eq } from 'drizzle-orm'
 import { orders } from '@decade/db'
-import { getDb, inngest } from '@decade/exchange-runtime'
+import { getDb, hasBuyingPowerFor, inngest } from '@decade/exchange-runtime'
 import { resolveActingBrokerOr401 } from '@/lib/broker-identity'
 import { parsePagination } from '@/lib/pagination'
 import { submitOrderSchema } from '@/lib/validation'
@@ -66,6 +66,17 @@ export async function POST(request: Request) {
   const body = parsed.data
   const db = getDb()
 
+  const limitPriceCents = body.type === 'market' ? null : (body.limitPrice ?? null)
+  // Buying-power check: a limit buy that would commit more cash than the broker
+  // has free is recorded `rejected` and never reaches the matcher. The matcher's
+  // execution-time `truncate` remains the backstop for market buys and races.
+  const affordable = await hasBuyingPowerFor(db, broker, {
+    side: body.side,
+    type: body.type,
+    limitPriceCents,
+    quantity: body.quantity,
+  })
+
   const [inserted] = await db
     .insert(orders)
     .values({
@@ -74,10 +85,10 @@ export async function POST(request: Request) {
       symbol: body.symbol,
       side: body.side,
       type: body.type,
-      limitPriceCents: body.type === 'market' ? null : (body.limitPrice ?? null),
+      limitPriceCents,
       quantity: body.quantity,
       remaining: body.quantity,
-      status: 'open',
+      status: affordable ? 'open' : 'rejected',
       expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
     })
     .returning({ id: orders.id })
@@ -86,11 +97,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'insert_failed' }, { status: 500 })
   }
 
-  // Hand off to the matcher; it serializes per symbol so the book stays consistent.
-  await inngest.send({
-    name: 'order/submitted',
-    data: { orderId: inserted.id, symbol: body.symbol },
-  })
+  // Hand off to the matcher; it serializes per symbol so the book stays
+  // consistent. A rejected order never enters the book, so it isn't emitted.
+  if (affordable) {
+    await inngest.send({
+      name: 'order/submitted',
+      data: { orderId: inserted.id, symbol: body.symbol },
+    })
+  }
 
-  return NextResponse.json({ orderId: inserted.id, status: 'open' }, { status: 201 })
+  return NextResponse.json(
+    { orderId: inserted.id, status: affordable ? 'open' : 'rejected' },
+    { status: 201 },
+  )
 }
