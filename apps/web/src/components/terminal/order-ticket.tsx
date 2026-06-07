@@ -91,7 +91,14 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
   return (
     <Card className="flex flex-1 flex-col">
       <CardHeader>
-        <CardTitle>Order ticket</CardTitle>
+        <CardTitle className="flex items-center gap-1.5">
+          Order ticket
+          <InfoTip label="More information">
+            Pick Buy or Sell and an order type, set the quantity (and a price for Limit), then
+            Submit. A Limit order trades only at your price or better; a Market order fills
+            immediately at the best available price.
+          </InfoTip>
+        </CardTitle>
       </CardHeader>
       <CardContent className="flex-1">
         <form className="space-y-2" noValidate onSubmit={handleSubmit}>

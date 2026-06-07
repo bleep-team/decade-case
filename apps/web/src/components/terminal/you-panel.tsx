@@ -169,7 +169,9 @@ export function YouPanel({
                               <X className="size-4" aria-hidden="true" />
                               Cancel
                             </Button>
-                          ) : null}
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))
