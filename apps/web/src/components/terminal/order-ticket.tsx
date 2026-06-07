@@ -89,11 +89,11 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
   }
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col">
+    <Card className="flex flex-1 flex-col">
       <CardHeader>
         <CardTitle>Order ticket</CardTitle>
       </CardHeader>
-      <CardContent className="min-h-0 flex-1 overflow-y-auto">
+      <CardContent className="flex-1">
         <form className="space-y-2" noValidate onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-2" role="group" aria-label="Side">
             <Button
