@@ -5,25 +5,24 @@ import { ApiKeyCard } from './api-key-card'
 afterEach(cleanup)
 
 describe('ApiKeyCard', () => {
-  it('renders the key masked, not in plaintext', () => {
-    render(<ApiKeyCard apiKey="sk_live_secret_value" onRotate={vi.fn()} />)
-    expect(screen.queryByText('sk_live_secret_value')).toBeNull()
+  it('masks the key when none is in hand (the stored key is hashed)', () => {
+    render(<ApiKeyCard apiKey={null} onRotate={vi.fn()} />)
     expect(screen.getByText(/•/)).not.toBeNull()
   })
 
-  it('reveals the key when the reveal control is used', () => {
-    render(<ApiKeyCard apiKey="sk_live_secret_value" onRotate={vi.fn()} />)
-    fireEvent.click(screen.getByRole('button', { name: /reveal/i }))
-    expect(screen.getByText('sk_live_secret_value')).not.toBeNull()
+  it('does not offer a reveal control for a hashed key', () => {
+    render(<ApiKeyCard apiKey={null} onRotate={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: /reveal/i })).toBeNull()
   })
 
-  it('rotates via the action and shows the fresh key', async () => {
-    const onRotate = vi.fn(async () => 'sk_live_rotated_value')
-    render(<ApiKeyCard apiKey="sk_live_secret_value" onRotate={onRotate} />)
+  it('shows the fresh key once after rotating, with a copy control', async () => {
+    const onRotate = vi.fn(async () => 'dk_rotated_value')
+    render(<ApiKeyCard apiKey={null} onRotate={onRotate} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /rotate/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^rotate$/i }))
 
     expect(onRotate).toHaveBeenCalled()
-    await waitFor(() => expect(screen.getByText('sk_live_rotated_value')).not.toBeNull())
+    await waitFor(() => expect(screen.getByText('dk_rotated_value')).not.toBeNull())
+    expect(screen.getByRole('button', { name: /copy/i })).not.toBeNull()
   })
 })

@@ -8,6 +8,7 @@ import { Button } from '@decade/ui/components/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@decade/ui/components/card'
 import { Input } from '@decade/ui/components/input'
 import { Label } from '@decade/ui/components/label'
+import { InfoTip } from './info-tip'
 
 /** The order payload the ticket hands to the submit action — money in cents. */
 export interface OrderTicketPayload {
@@ -155,7 +156,13 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
               ) : null}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ticket-price">Price (USD)</Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="ticket-price">Price (USD)</Label>
+                <InfoTip label="More information">
+                  The limit price per share. Market orders take the best available price, so this is
+                  disabled for them.
+                </InfoTip>
+              </div>
               <Input
                 id="ticket-price"
                 type="number"
@@ -180,7 +187,13 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="ticket-expiry">Expiry</Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="ticket-expiry">Expiry</Label>
+                <InfoTip label="More information">
+                  When the order auto-expires if unfilled. Leave blank to keep it resting until
+                  filled or cancelled.
+                </InfoTip>
+              </div>
               <Input
                 id="ticket-expiry"
                 type="datetime-local"
@@ -189,7 +202,13 @@ export function OrderTicket({ symbol, defaultOwnerDocument, onSubmit }: OrderTic
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ticket-owner">Owner document</Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="ticket-owner">Owner document</Label>
+                <InfoTip label="More information">
+                  The national ID of the customer the order is placed on behalf of, recorded on the
+                  order.
+                </InfoTip>
+              </div>
               <Input
                 id="ticket-owner"
                 autoComplete="off"

@@ -47,10 +47,23 @@ export interface WebhookCardProps {
   onSave: (payload: WebhookPayload) => void | Promise<void>
 }
 
+/** Example of the JSON body delivered on every fill (price is in integer cents). */
+const PAYLOAD_EXAMPLE = `{
+  "event": "trade.executed",
+  "tradeId": "9f0c8d2a…",
+  "symbol": "AAPL",
+  "price": 19011,
+  "quantity": 10,
+  "bidOrderId": "6845b95a…",
+  "askOrderId": "f82746c4…",
+  "executedAt": "2026-06-06T22:00:00.000Z"
+}`
+
 /**
- * The webhook panel: a registration form (URL + signing secret) and a table of
- * recent delivery attempts. Presentational — the save handler and delivery rows
- * come in as props; on submit it forms a {@link WebhookPayload} for `onSave`.
+ * The webhook panel: a registration form (URL + signing secret), documentation of
+ * the delivered payload and its signature, and a table of recent delivery
+ * attempts. Presentational — the save handler and delivery rows come in as props;
+ * on submit it forms a {@link WebhookPayload} for `onSave`.
  */
 export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: WebhookCardProps) {
   const [url, setUrl] = useState(defaultUrl)
@@ -98,6 +111,26 @@ export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: W
             Save webhook
           </Button>
         </form>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-muted-foreground">What we deliver</h3>
+          <p className="text-sm text-muted-foreground">
+            On every fill involving you, we <code>POST</code> a JSON body for the{' '}
+            <code>trade.executed</code> event:
+          </p>
+          <pre
+            aria-label="Webhook payload example"
+            className="overflow-x-auto rounded-md border border-border bg-muted px-3 py-2 font-mono text-xs"
+          >
+            <code>{PAYLOAD_EXAMPLE}</code>
+          </pre>
+          <p className="text-sm text-muted-foreground">
+            <code>price</code> is the execution price in integer cents. The body is signed with
+            HMAC-SHA256 over its raw bytes using your secret, sent in the{' '}
+            <code>x-decade-signature</code> header (hex) — verify by recomputing the HMAC and
+            comparing. Delivery is retried up to 4 times on failure.
+          </p>
+        </div>
 
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground">Recent deliveries</h3>

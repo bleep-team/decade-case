@@ -3,6 +3,7 @@ import { formatUsd } from '@decade/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@decade/ui/components/card'
 import { ScrollArea } from '@decade/ui/components/scroll-area'
 import { cn } from '@decade/ui/lib/utils'
+import { InfoTip } from './info-tip'
 
 export interface OrderBookPanelProps {
   book: OrderBookSnapshot
@@ -45,7 +46,12 @@ export function OrderBookPanel({ book }: OrderBookPanelProps) {
               data-testid="book-spread"
               className="my-1 flex items-center justify-between border-y border-border py-1 text-xs text-muted-foreground"
             >
-              <span>Spread</span>
+              <span className="flex items-center gap-1">
+                Spread
+                <InfoTip label="More information">
+                  The gap between the best (lowest) ask and the best (highest) bid.
+                </InfoTip>
+              </span>
               <span className="font-mono text-foreground">
                 {spread !== null ? formatUsd(spread) : '—'}
               </span>

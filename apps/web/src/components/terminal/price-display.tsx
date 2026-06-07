@@ -2,6 +2,7 @@ import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { formatUsd } from '@decade/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@decade/ui/components/card'
 import { cn } from '@decade/ui/lib/utils'
+import { InfoTip } from './info-tip'
 
 export interface PriceDisplayProps {
   symbol: string
@@ -58,8 +59,14 @@ export function PriceDisplay({ symbol, priceCents, deltaCents }: PriceDisplayPro
             )}
           >
             <Icon className="size-4" aria-hidden="true" />
-            {deltaCents != null ? `${DELTA_SIGN[direction]}${formatUsd(Math.abs(deltaCents))}` : '—'}
+            {deltaCents != null
+              ? `${DELTA_SIGN[direction]}${formatUsd(Math.abs(deltaCents))}`
+              : '—'}
           </span>
+          <InfoTip label="More information">
+            The midpoint of the best bid and ask. The change is versus the first price seen this
+            session.
+          </InfoTip>
         </div>
       </CardContent>
     </Card>

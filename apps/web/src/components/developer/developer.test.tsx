@@ -36,8 +36,8 @@ describe('Developer tabs', () => {
 
   it('shows the API key section by default', () => {
     renderDeveloper()
-    // The reveal control is unique to the API key card; the other cards are not mounted yet.
-    expect(screen.getByRole('button', { name: /reveal/i })).not.toBeNull()
+    // The rotate control is unique to the API key card; the other cards are not mounted yet.
+    expect(screen.getByRole('button', { name: /rotate/i })).not.toBeNull()
     expect(screen.queryByText('Integrate')).toBeNull()
   })
 
