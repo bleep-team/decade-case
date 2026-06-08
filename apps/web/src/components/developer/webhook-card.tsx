@@ -19,6 +19,7 @@ import {
 } from '@decade/ui/components/collapsible'
 import { Input } from '@decade/ui/components/input'
 import { Label } from '@decade/ui/components/label'
+import { cn } from '@decade/ui/lib/utils'
 import { CodeBlock } from './code-block'
 import { InfoTip } from '@/components/terminal/info-tip'
 import { formatTime } from '@/lib/format-time'
@@ -84,6 +85,12 @@ export function WebhookCard({
   const [copiedSecret, setCopiedSecret] = useState(false)
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
+  // "Active" only means anything with somewhere to deliver — there is nothing to
+  // activate until an endpoint URL is set, so the toggle is disabled and reads
+  // off until then, and a save never reports active without a URL.
+  const hasUrl = url.trim().length > 0
+  const effectiveActive = active && hasUrl
+
   const handleCopySecret = async () => {
     await navigator.clipboard?.writeText(secret)
     setCopiedSecret(true)
@@ -93,7 +100,7 @@ export function WebhookCard({
     event.preventDefault()
     setStatus('saving')
     try {
-      await onSave({ url, secret, active })
+      await onSave({ url, secret, active: effectiveActive })
       setStatus('saved')
       window.setTimeout(() => setStatus('idle'), 2500)
     } catch {
@@ -150,13 +157,22 @@ export function WebhookCard({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Switch id="webhook-active" checked={active} onCheckedChange={setActive} />
-            <Label htmlFor="webhook-active" className="text-sm">
+            <Switch
+              id="webhook-active"
+              checked={effectiveActive}
+              onCheckedChange={setActive}
+              disabled={!hasUrl}
+            />
+            <Label
+              htmlFor="webhook-active"
+              className={cn('text-sm', !hasUrl && 'text-muted-foreground')}
+            >
               Active
             </Label>
             <InfoTip label="More information">
-              When off, the endpoint stays saved but deliveries are paused, so a failing endpoint
-              stops retrying.
+              {hasUrl
+                ? 'When off, the endpoint stays saved but deliveries are paused, so a failing endpoint stops retrying.'
+                : 'Add an endpoint URL to enable deliveries — there is nothing to activate yet.'}
             </InfoTip>
           </div>
 

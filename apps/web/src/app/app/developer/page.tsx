@@ -80,7 +80,7 @@ export default async function DeveloperPage() {
       apiKey={null}
       defaultWebhookUrl={endpoint?.url ?? ''}
       defaultWebhookSecret={endpoint?.secret ?? ''}
-      defaultWebhookActive={endpoint?.active ?? true}
+      defaultWebhookActive={endpoint?.active ?? false}
       deliveries={deliveries}
     />
   )

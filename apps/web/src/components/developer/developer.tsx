@@ -39,7 +39,7 @@ export function Developer({
   apiKey,
   defaultWebhookUrl,
   defaultWebhookSecret,
-  defaultWebhookActive = true,
+  defaultWebhookActive = false,
   deliveries,
   onRotate = rotateApiKeyAction,
   onSaveWebhook = async (payload: WebhookPayload) => {

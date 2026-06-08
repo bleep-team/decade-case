@@ -57,6 +57,20 @@ describe('WebhookCard', () => {
     })
   })
 
+  it('keeps Active disabled and off until an endpoint URL is set', () => {
+    render(<WebhookCard defaultUrl="" defaultSecret="" deliveries={[]} onSave={vi.fn()} />)
+    const toggle = screen.getByRole('switch')
+    expect(toggle.getAttribute('disabled')).not.toBeNull()
+    expect(toggle.getAttribute('aria-checked')).toBe('false')
+  })
+
+  it('does not report active on save when there is no endpoint URL', () => {
+    const onSave = vi.fn()
+    render(<WebhookCard defaultUrl="" defaultSecret="whsec_abc" deliveries={[]} onSave={onSave} />)
+    fireEvent.click(screen.getByRole('button', { name: /save/i }))
+    expect(onSave).toHaveBeenCalledWith({ url: '', secret: 'whsec_abc', active: false })
+  })
+
   it('shows an empty state with no deliveries', () => {
     render(<WebhookCard defaultUrl="" defaultSecret="" deliveries={[]} onSave={vi.fn()} />)
     expect(screen.getByText(/no deliveries/i)).not.toBeNull()
