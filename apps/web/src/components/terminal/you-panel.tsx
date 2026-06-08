@@ -24,6 +24,8 @@ import {
   TableRow,
 } from '@decade/ui/components/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@decade/ui/components/tabs'
+import { cn } from '@decade/ui/lib/utils'
+import { SideLabel } from '@/components/side-label'
 import { useUrlState } from '@/lib/use-url-state'
 
 /** A signed share position the broker holds. */
@@ -170,7 +172,15 @@ export function YouPanel({
                     {holdings.map((h) => (
                       <TableRow key={h.symbol}>
                         <TableCell>{h.symbol}</TableCell>
-                        <TableCell className="text-right font-mono">{h.quantity}</TableCell>
+                        <TableCell
+                          className={cn(
+                            'text-right font-mono tabular-nums',
+                            h.quantity > 0 && 'text-gain',
+                            h.quantity < 0 && 'text-loss',
+                          )}
+                        >
+                          {h.quantity > 0 ? `+${h.quantity}` : h.quantity}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -203,7 +213,9 @@ export function YouPanel({
                   <TableBody>
                     {orders.map((o) => (
                       <TableRow key={o.id}>
-                        <TableCell className="uppercase">{o.side}</TableCell>
+                        <TableCell>
+                          <SideLabel side={o.side} />
+                        </TableCell>
                         <TableCell className="font-mono">
                           {o.limitPriceCents != null ? formatUsd(o.limitPriceCents) : 'MKT'}
                         </TableCell>
@@ -256,7 +268,9 @@ export function YouPanel({
                   <TableBody>
                     {fills.map((f) => (
                       <TableRow key={f.tradeId}>
-                        <TableCell className="uppercase">{f.side}</TableCell>
+                        <TableCell>
+                          <SideLabel side={f.side} />
+                        </TableCell>
                         <TableCell className="font-mono">{formatUsd(f.price)}</TableCell>
                         <TableCell className="text-right font-mono">{f.quantity}</TableCell>
                       </TableRow>

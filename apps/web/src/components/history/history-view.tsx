@@ -23,6 +23,7 @@ import {
   TableRow,
 } from '@decade/ui/components/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@decade/ui/components/tabs'
+import { SideLabel } from '@/components/side-label'
 import { formatTime } from '@/lib/format-time'
 import { useUrlState } from '@/lib/use-url-state'
 
@@ -204,7 +205,9 @@ export function HistoryView({
                     <TableRow key={o.id}>
                       <TableCell className="font-mono text-xs">{o.id}</TableCell>
                       <TableCell>{o.symbol}</TableCell>
-                      <TableCell className="uppercase">{o.side}</TableCell>
+                      <TableCell>
+                        <SideLabel side={o.side} />
+                      </TableCell>
                       <TableCell className="font-mono">
                         {o.limitPriceCents != null ? formatUsd(o.limitPriceCents) : 'MKT'}
                       </TableCell>
@@ -249,7 +252,9 @@ export function HistoryView({
                     <TableRow key={t.tradeId}>
                       <TableCell className="font-mono text-xs">{t.tradeId}</TableCell>
                       <TableCell>{t.symbol}</TableCell>
-                      <TableCell className="uppercase">{t.side}</TableCell>
+                      <TableCell>
+                        <SideLabel side={t.side} />
+                      </TableCell>
                       <TableCell className="font-mono">{formatUsd(t.priceCents)}</TableCell>
                       <TableCell className="text-right font-mono">{t.quantity}</TableCell>
                       <TableCell className="font-mono text-xs text-muted-foreground">

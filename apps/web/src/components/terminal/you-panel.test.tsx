@@ -75,7 +75,7 @@ describe('YouPanel', () => {
       />,
     )
     expect(screen.getByText('AAPL')).not.toBeNull()
-    expect(screen.getByText('12')).not.toBeNull()
+    expect(screen.getByText('+12')).not.toBeNull()
   })
 
   it('offers a cancel control only on a cancellable order and calls onCancel', () => {
