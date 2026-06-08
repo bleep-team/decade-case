@@ -96,16 +96,22 @@ pnpm dev:inngest                              # Inngest dev server (separate she
 
 ## API (v1)
 
-| Method | Path                        | Purpose                                       |
-| ------ | --------------------------- | --------------------------------------------- |
-| `POST` | `/api/orders`               | Submit a bid/ask order → `{ orderId }`        |
-| `GET`  | `/api/orders/:id`           | Order status                                  |
-| `GET`  | `/api/stocks/:symbol/book`  | Top-of-book bids/asks (`?depth=10`)           |
-| `GET`  | `/api/stocks/:symbol/price` | Current price (moving average)                |
-| `GET`  | `/api/brokers/:id/balance`  | Broker cash balance                           |
-| `GET`  | `/api/health`               | Liveness + DB readiness                       |
-| `POST` | `/api/inngest`              | Inngest function endpoint                     |
-| `POST` | `/api/mcp`                  | MCP server (Streamable HTTP) — exchange tools |
+| Method | Path                        | Purpose                                                                    |
+| ------ | --------------------------- | -------------------------------------------------------------------------- |
+| `POST` | `/api/orders`               | Submit a bid/ask order → `{ orderId, status }`                             |
+| `GET`  | `/api/orders`               | List the broker's own orders (paginated)                                   |
+| `GET`  | `/api/orders/:id`           | Order status                                                               |
+| `POST` | `/api/orders/:id/cancel`    | Cancel a resting order                                                     |
+| `GET`  | `/api/trades`               | The broker's executions (paginated)                                        |
+| `GET`  | `/api/stocks/:symbol/book`  | Top-of-book bids/asks (`?depth=10`)                                        |
+| `GET`  | `/api/stocks/:symbol/price` | Current price (order-book midpoint)                                        |
+| `GET`  | `/api/brokers/:id/balance`  | Broker cash balance + positions                                            |
+| `POST` | `/api/webhooks`             | Register/update the broker's webhook endpoint                              |
+| `GET`  | `/api/webhooks/deliveries`  | Recent webhook delivery attempts                                           |
+| `POST` | `/api/demo/reset`           | Reset the broker (cancel orders, restore cash)                             |
+| `GET`  | `/api/health`               | Liveness + DB readiness                                                    |
+| `POST` | `/api/inngest`              | Inngest function endpoint                                                  |
+| `*`    | `/api/mcp`                  | MCP server (Streamable HTTP) — exchange tools; Clerk OAuth or API-key auth |
 
 ## Documentation
 

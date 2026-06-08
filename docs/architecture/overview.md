@@ -32,13 +32,20 @@ the broker uses to poll status.
 apps/web                 REST API, Clerk auth, dashboard, Inngest/MCP endpoints
 ```
 
-`@decade/mcp` sits beside the API, exposing it as MCP tools. `@decade/auth`,
-`@decade/ui`, and `@decade/logger` are cross-cutting.
+`@decade/mcp` sits beside the API, exposing it as MCP tools. Those tools call the
+same broker-scoped `exchange-service` the REST routes use (no HTTP round-trip),
+acting as the broker resolved from the caller's identity — a Clerk **OAuth** token
+(the native add-by-URL connector, discovered via the `.well-known/oauth-*` routes)
+or a forwarded **API key**. `@decade/auth`, `@decade/ui`, and `@decade/logger` are
+cross-cutting.
 
 ## The order lifecycle
 
-1. **Submit** — `POST /api/orders` validates the body (`@/lib/validation`), inserts
-   an `open` order row, returns `{ orderId }`, and emits `order/submitted`.
+1. **Submit** — `POST /api/orders` validates the body (`@/lib/validation`) and checks
+   buying power; an underfunded limit buy is recorded `rejected` and goes no further.
+   Otherwise it inserts an `open` order row, returns `{ orderId, status }`, and emits
+   `order/submitted`. The REST route, the terminal server action, and the MCP
+   `submit_order` tool share this one service, so all three behave identically.
 2. **Match** — the `match-order` Inngest function runs with **per-symbol
    concurrency (`key: symbol, limit: 1`)**. This single-writer-per-symbol
    guarantee is what makes price-time priority and partial fills race-free without

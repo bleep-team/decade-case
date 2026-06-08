@@ -47,8 +47,11 @@ Each package lives in `packages/<name>/` and is published as `@decade/<name>`.
 
 ## Architecture: the order lifecycle
 
-1. `POST /api/orders` validates the body, inserts an `open` order row, returns
-   its id, and emits an `order/submitted` Inngest event.
+1. `POST /api/orders` validates the body and checks buying power: an underfunded
+   limit buy is inserted `rejected` and stops here; otherwise it inserts an `open`
+   order row, returns its id, and emits an `order/submitted` Inngest event. The
+   REST route, the terminal server action, and the MCP `submit_order` tool all go
+   through the one shared `exchange-service`, so the three surfaces behave alike.
 2. The `match-order` Inngest function runs with **per-symbol concurrency
    (`key: symbol, limit: 1`)** — a single writer per symbol — loads the resting
    book, runs `@decade/matching-engine`, and persists trades + order updates +

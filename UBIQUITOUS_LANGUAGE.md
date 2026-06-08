@@ -17,7 +17,7 @@ APIs, and docs.
 | **Remaining**         | Unfilled quantity still resting on the book.                                                                                   |
 | **Sequence**          | A monotonic per-order counter; the chronological (price-time) priority tiebreaker.                                             |
 | **Order book**        | The set of live (open/partially-filled) orders for a symbol, aggregated into price **levels**.                                 |
-| **Status**            | `open` → `partially_filled` → `filled`, or `cancelled` / `expired`.                                                            |
+| **Status**            | `open` → `partially_filled` → `filled`, or `cancelled` / `expired` / `rejected`.                                               |
 | **Cents**             | The unit of all money in the system — integer minor currency units. Never floats.                                              |
 | **Symbol**            | A tradeable stock ticker (e.g. `AAPL`), backed by the `stocks` reference table.                                                |
 
@@ -28,3 +28,4 @@ APIs, and docs.
 - `filled` — fully matched, `remaining = 0`.
 - `cancelled` — terminated before fully filling (e.g. a market order's unfilled remainder).
 - `expired` — passed its `expiresAt` before filling; swept by the expiry cron.
+- `rejected` — a limit buy whose cost exceeds the broker's available cash; recorded at submission and never sent to matching (the cash-leg guard, distinct from a user `cancelled`).
