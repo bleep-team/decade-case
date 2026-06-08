@@ -29,9 +29,8 @@ export function MobileBlock() {
         <h1 className="max-w-md text-2xl font-semibold tracking-tight">
           Decade is built for desktop
         </h1>
-        <p className="max-w-sm text-base text-muted-foreground">
-          The trading terminal (live order book, ticket, positions, and history side by side) needs
-          room to breathe. Open Decade on a desktop or laptop to start trading.
+        <p className="max-w-xs text-base text-muted-foreground">
+          The terminal needs a wider screen. Open Decade on a desktop to trade.
         </p>
 
         <Wordmark className="mt-2" />
