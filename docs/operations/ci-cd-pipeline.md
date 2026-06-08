@@ -6,10 +6,13 @@ first-time setup of Vercel / Neon / Clerk / Inngest, see the
 
 ## Overview
 
-The pipeline is integration-first: **Vercel** and **Neon** handle their own
-deployments, **Inngest** registers its functions via the Vercel integration, and
-GitHub Actions fills the two gaps — running PR checks and applying production
-database migrations.
+The pipeline is integration-first: **Vercel** hosts the app, and its
+first-party integrations carry the rest — the **Neon** integration gives each
+preview its own database branch (production uses the main branch), and the
+**Inngest** integration registers the functions on each deploy, for both previews
+and production. GitHub Actions fills
+the two gaps it leaves: running PR checks and applying production database
+migrations.
 
 - **PR pipeline** — fast feedback on every pull request (`ci.yml`) plus an
   automatic Vercel preview deployment.
@@ -53,10 +56,19 @@ packages are not rebuilt within a run.
 
 ### Preview environment
 
-Vercel's GitHub integration auto-deploys a **preview** for each PR (the "Vercel"
-check links to it) — no Actions config needed. The preview runs against the
-configured preview/development Neon branch and a Clerk **development** instance
-(its placeholder banner and rate limits are expected on previews).
+Every PR gets its own **fully-isolated, disposable** preview, wired up entirely
+by Vercel integrations — no Actions config needed:
+
+- **Vercel** auto-deploys a preview build (the "Vercel" check links to it).
+- The **Neon Vercel integration** creates a **database branch for that preview**,
+  so a PR never reads or writes dev or production data; the branch is cleaned up
+  when the PR closes.
+- The **Inngest Vercel integration** registers the functions against the preview
+  deployment, so matching, expiry, webhooks, and the market-maker all run on the
+  preview just as in production.
+
+Auth on previews uses a Clerk **development** instance (its placeholder banner and
+rate limits are expected).
 
 ## Production pipeline
 
@@ -122,8 +134,8 @@ The actions are pinned to Node-24 majors (`checkout@v5`, `setup-node@v5`,
 
 ## Platform integrations
 
-| Platform                   | What it does                                             |
-| -------------------------- | -------------------------------------------------------- |
-| Vercel GitHub Integration  | Deploys `apps/web` on every push (preview + production)  |
-| Inngest Vercel Integration | Re-registers the Inngest functions on each Vercel deploy |
-| Neon                       | Production branch for the app; branches for previews     |
+| Platform                   | What it does                                                                 |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| Vercel GitHub Integration  | Deploys `apps/web` on every push (preview + production)                      |
+| Neon Vercel Integration    | A database branch per preview deployment; the production branch for `main`   |
+| Inngest Vercel Integration | Registers the Inngest functions on each Vercel deploy (preview + production) |
