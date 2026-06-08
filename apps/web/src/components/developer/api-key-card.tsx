@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@decade/ui/components/card'
+import { useCopy } from '@/lib/use-copy'
 
 export interface ApiKeyCardProps {
   /** A freshly-issued plaintext key to show once, or null when none is in hand. */
@@ -30,14 +31,14 @@ const MASK = '••••••••••••••••••••••
 export function ApiKeyCard({ apiKey, onRotate }: ApiKeyCardProps) {
   const [freshKey, setFreshKey] = useState<string | null>(apiKey)
   const [rotating, setRotating] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const { copied, copy, reset } = useCopy()
 
   const handleRotate = async () => {
     setRotating(true)
     try {
       const next = await onRotate()
       setFreshKey(next)
-      setCopied(false)
+      reset()
     } finally {
       setRotating(false)
     }
@@ -45,8 +46,7 @@ export function ApiKeyCard({ apiKey, onRotate }: ApiKeyCardProps) {
 
   const handleCopy = async () => {
     if (!freshKey) return
-    await navigator.clipboard?.writeText(freshKey)
-    setCopied(true)
+    await copy(freshKey)
   }
 
   const rotateButton = (
