@@ -79,7 +79,13 @@ export function deriveBrokerUpdates(
 ): Array<{ brokerId: string; update: BrokerUpdate }> {
   const fillFor = (tradeIndex: number, side: OrderSide): FillInfo => {
     const t = result.trades[tradeIndex]!
-    return { tradeId: tradeIds[tradeIndex]!, symbol: t.symbol, price: t.price, quantity: t.quantity, side }
+    return {
+      tradeId: tradeIds[tradeIndex]!,
+      symbol: t.symbol,
+      price: t.price,
+      quantity: t.quantity,
+      side,
+    }
   }
 
   const updateFor = (
@@ -109,7 +115,9 @@ export function deriveBrokerUpdates(
   for (const resting of result.filledRestingOrders) {
     const fills = result.trades
       .map((t, i) =>
-        t.bidOrderId === resting.id || t.askOrderId === resting.id ? fillFor(i, resting.side) : null,
+        t.bidOrderId === resting.id || t.askOrderId === resting.id
+          ? fillFor(i, resting.side)
+          : null,
       )
       .filter((f): f is FillInfo => f !== null)
     updates.push(updateFor(resting, fills))

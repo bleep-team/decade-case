@@ -46,9 +46,7 @@ export async function resolveActingBroker(request: Request): Promise<Broker> {
  * route handler can return as-is. Returns either the broker or a `NextResponse`;
  * callers branch with `instanceof NextResponse`. Non-auth errors still throw.
  */
-export async function resolveActingBrokerOr401(
-  request: Request,
-): Promise<Broker | NextResponse> {
+export async function resolveActingBrokerOr401(request: Request): Promise<Broker | NextResponse> {
   try {
     return await resolveActingBroker(request)
   } catch (error) {

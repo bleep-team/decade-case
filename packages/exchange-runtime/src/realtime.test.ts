@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { MatchResult, ProposedTrade } from '@decade/matching-engine'
 import type { Order } from '@decade/types'
-import { brokerChannel, deriveBrokerUpdates, publishBrokerUpdate, type BrokerUpdate } from './realtime.js'
+import {
+  brokerChannel,
+  deriveBrokerUpdates,
+  publishBrokerUpdate,
+  type BrokerUpdate,
+} from './realtime.js'
 
 const update: BrokerUpdate = {
   order: { id: 'ord_1', symbol: 'AAPL', side: 'bid', status: 'filled', remaining: 0 },
@@ -68,7 +73,13 @@ describe('deriveBrokerUpdates', () => {
     const result: MatchResult = {
       takerOrder: order(),
       filledRestingOrders: [
-        order({ id: 'ord_rest', brokerId: 'brk_seller', side: 'ask', remaining: 0, status: 'filled' }),
+        order({
+          id: 'ord_rest',
+          brokerId: 'brk_seller',
+          side: 'ask',
+          remaining: 0,
+          status: 'filled',
+        }),
       ],
       trades: [trade()],
     }

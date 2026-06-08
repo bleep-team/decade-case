@@ -23,10 +23,7 @@ export async function publishSettlement(
 
   const symbol = result.takerOrder.symbol
   const brokerIds = [
-    ...new Set([
-      result.takerOrder.brokerId,
-      ...result.filledRestingOrders.map((o) => o.brokerId),
-    ]),
+    ...new Set([result.takerOrder.brokerId, ...result.filledRestingOrders.map((o) => o.brokerId)]),
   ]
 
   const cashRows = await db

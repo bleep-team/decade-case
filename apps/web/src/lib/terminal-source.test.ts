@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { BrokerUpdate } from '@decade/exchange-runtime'
-import {
-  createPollingSource,
-  createRealtimeSource,
-  type TerminalSource,
-} from './terminal-source'
+import { createPollingSource, createRealtimeSource, type TerminalSource } from './terminal-source'
 
 const update: BrokerUpdate = {
   order: { id: 'ord_1', symbol: 'AAPL', side: 'bid', status: 'filled', remaining: 0 },

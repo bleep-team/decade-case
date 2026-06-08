@@ -62,9 +62,7 @@ describe('runDemoReset', () => {
   it('leaves already-terminal orders untouched and clears positions', async () => {
     const broker = await harness.seedBroker({ cashBalanceCents: 5 })
     const filledId = await insertOrder({ brokerId: broker.id, status: 'filled', remaining: 0 })
-    await harness.db
-      .insert(positions)
-      .values({ brokerId: broker.id, symbol: 'AAPL', quantity: 12 })
+    await harness.db.insert(positions).values({ brokerId: broker.id, symbol: 'AAPL', quantity: 12 })
 
     const result = await runDemoReset(harness.db, broker.id, STARTING)
 
