@@ -34,6 +34,18 @@ export function GuideNav({ sections }: { sections: GuideNavEntry[] }) {
     return () => observer.disconnect()
   }, [sections])
 
+  // Smooth-scroll to the section (honoring reduced motion) and reflect it in the
+  // URL hash, instead of the default instant jump.
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    const el = document.getElementById(id)
+    if (!el) return
+    event.preventDefault()
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+    history.replaceState(null, '', `#${id}`)
+    setActive(id)
+  }
+
   return (
     <nav aria-label="On this page" className="sticky top-2 hidden h-fit lg:block">
       <p className="mb-3 pl-3 text-[0.7rem] font-medium uppercase tracking-wider text-muted-foreground">
@@ -46,6 +58,7 @@ export function GuideNav({ sections }: { sections: GuideNavEntry[] }) {
             <li key={section.id}>
               <a
                 href={`#${section.id}`}
+                onClick={(e) => handleClick(e, section.id)}
                 aria-current={isActive ? 'true' : undefined}
                 className={cn(
                   '-ml-px flex items-center gap-2.5 rounded-sm border-l-2 py-1.5 pl-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',

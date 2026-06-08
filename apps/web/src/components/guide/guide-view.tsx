@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { GuideNav } from './guide-nav'
+import { ScrollTop } from './scroll-top'
 
 /** A worked example shown as bid/ask chips resolving to an outcome. */
 interface TradeExample {
@@ -225,8 +226,8 @@ function TradeChips({ buy, sell, result }: TradeExample) {
 
 function Entry({ item, index }: { item: GuideItem; index: number }) {
   return (
-    <li className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-4">
-      <span className="pt-0.5 font-mono text-sm text-muted-foreground">
+    <li className="group grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-4">
+      <span className="pt-0.5 font-mono text-sm text-muted-foreground transition-colors group-hover:text-brand">
         {String(index + 1).padStart(2, '0')}
       </span>
       <div className="space-y-3 border-b border-border/60 pb-7 last:border-0 last:pb-0">
@@ -276,7 +277,7 @@ function Entry({ item, index }: { item: GuideItem; index: number }) {
  */
 export function GuideView() {
   return (
-    <div className="relative mx-auto max-w-5xl">
+    <div className="relative mx-auto max-w-5xl pb-20">
       {/* Brand-accent glow behind the header. */}
       <div
         aria-hidden="true"
@@ -351,6 +352,8 @@ export function GuideView() {
           </section>
         </div>
       </div>
+
+      <ScrollTop />
     </div>
   )
 }
