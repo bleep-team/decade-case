@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
+import { REPO_URL, repoPath } from '@/lib/site'
 import { GuideNav } from './guide-nav'
 import { ScrollTop } from './scroll-top'
 
@@ -198,10 +199,32 @@ const SECTIONS: GuideSection[] = [
   },
 ]
 
-const NAV = SECTIONS.map((s) => ({ id: s.id, title: s.title })).concat({
-  id: 'run',
-  title: 'Run it yourself',
-})
+/** Engineering decisions worth calling out, each linking to the repo for depth. */
+const ARCHITECTURE: { lead: string; body: string; link?: { href: string; label: string } }[] = [
+  {
+    lead: 'A pure matching engine',
+    body: 'Price-time matching is a pure, clock-free, database-free package, so every rule in the brief is exhaustively unit-tested in isolation.',
+    link: { href: repoPath('docs/adr/0005-matching-engine.md'), label: 'ADR 0005' },
+  },
+  {
+    lead: 'One writer per symbol',
+    body: 'Matching runs on Inngest with per-symbol concurrency (limit 1), which makes price-time priority and partial fills race-free without application locks.',
+    link: { href: repoPath('docs/adr/0004-inngest-jobs.md'), label: 'ADR 0004' },
+  },
+  {
+    lead: 'Money is integer cents',
+    body: 'Never floats. Each execution writes its trades, order updates, and broker balance moves in one database transaction.',
+  },
+  {
+    lead: 'One core, three surfaces',
+    body: 'The REST API, the trading terminal, and the MCP tools all run the same broker-scoped service, so the surfaces cannot drift apart.',
+  },
+]
+
+const NAV = SECTIONS.map((s) => ({ id: s.id, title: s.title })).concat(
+  { id: 'architecture', title: 'Under the hood' },
+  { id: 'run', title: 'Run it yourself' },
+)
 
 function TradeChips({ buy, sell, result }: TradeExample) {
   return (
@@ -321,7 +344,7 @@ export function GuideView() {
           ))}
 
           <section
-            id="run"
+            id="architecture"
             className="scroll-mt-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:fill-mode-both motion-safe:duration-500"
             style={{ animationDelay: `${SECTIONS.length * 70}ms` }}
           >
@@ -329,11 +352,83 @@ export function GuideView() {
               <span className="font-mono text-sm text-brand">
                 {String(SECTIONS.length + 1).padStart(2, '0')}
               </span>
+              <h2 className="text-xl font-semibold tracking-tight">Under the hood</h2>
+            </div>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              A few engineering choices worth calling out. Full detail lives in the repo&rsquo;s{' '}
+              <a
+                href={repoPath('docs/architecture/overview.md')}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded text-brand hover:text-brand/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                architecture overview
+              </a>{' '}
+              and{' '}
+              <a
+                href={repoPath('docs/adr')}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded text-brand hover:text-brand/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                decision records
+              </a>
+              .
+            </p>
+            <ul className="mt-6 space-y-4">
+              {ARCHITECTURE.map((point) => (
+                <li
+                  key={point.lead}
+                  className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-4 border-b border-border/60 pb-4 last:border-0 last:pb-0"
+                >
+                  <span aria-hidden="true" className="pt-1 font-mono text-brand">
+                    +
+                  </span>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">{point.lead}.</span> {point.body}
+                    {point.link ? (
+                      <>
+                        {' '}
+                        <a
+                          href={point.link.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-0.5 rounded font-medium text-brand hover:text-brand/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          {point.link.label}
+                          <ArrowUpRight className="size-3" aria-hidden="true" />
+                        </a>
+                      </>
+                    ) : null}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section
+            id="run"
+            className="scroll-mt-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:fill-mode-both motion-safe:duration-500"
+            style={{ animationDelay: `${(SECTIONS.length + 1) * 70}ms` }}
+          >
+            <div className="flex items-baseline gap-3">
+              <span className="font-mono text-sm text-brand">
+                {String(SECTIONS.length + 2).padStart(2, '0')}
+              </span>
               <h2 className="text-xl font-semibold tracking-tight">Run it yourself</h2>
             </div>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               The whole stack — Postgres, migrations, the web app, and the jobs runtime — comes up
-              from one command, in a reproducible container.
+              from one command, in a reproducible container. Clone{' '}
+              <a
+                href={REPO_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded text-brand hover:text-brand/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                the repository
+              </a>
+              , then:
             </p>
             <div className="mt-6 overflow-hidden rounded-lg border border-border bg-card">
               <div className="border-b border-border px-4 py-2">
