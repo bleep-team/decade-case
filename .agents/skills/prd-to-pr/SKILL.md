@@ -147,26 +147,26 @@ git diff origin/main...HEAD --name-only
 
 **Net-new gate (check explicitly on a major surface change — these are the docs most often forgotten):**
 
-- New package → its `README.md` + the package table in `CLAUDE.md` + the package list in `docs/architecture/overview.md` + the `docs/README.md` index.
+- New package → its `README.md` + the package table in `CLAUDE.md` + `docs/architecture/package-guide.md` + the directory tree in `docs/architecture/repo-structure.md` + the module map in `docs/architecture/overview.md` + the `docs/README.md` index.
 - New external surface or integration (REST route family, MCP tool, Inngest job/realtime channel, webhook event) → the order-lifecycle / surfaces section of `docs/architecture/overview.md`, linked from `docs/README.md`.
 - New architectural decision, external dependency, or invariant change → a new ADR in `docs/adr/` + the `docs/adr/README.md` index.
 - New or renamed canonical domain term (Bid/Ask, Order, Trade, Book, Cents…) → `UBIQUITOUS_LANGUAGE.md`.
 
 The hint table below maps changed paths to docs that frequently go stale. It **feeds** the audit; it does not replace reading them:
 
-| What changed                                                                                      | Docs to check                                                                                   |
-| ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `packages/db/**`, schema, migrations                                                              | `packages/db/README.md`, `docs/architecture/overview.md`                                        |
-| `packages/auth/**`, broker identity, API keys                                                     | `packages/auth/README.md`, `UBIQUITOUS_LANGUAGE.md` (Broker)                                    |
-| `packages/matching-engine/**`, matching/price-time rules, partial fills                           | `packages/matching-engine/README.md`, `docs/architecture/overview.md`, `UBIQUITOUS_LANGUAGE.md` |
-| Order lifecycle, REST routes, MCP tools, Inngest jobs/realtime, webhooks                          | `docs/architecture/overview.md`, `docs/README.md`                                               |
-| Any package's public API (exports in `src/index.ts`)                                              | That package's `README.md`                                                                      |
-| `apps/web/.env.example` or a new env var                                                          | root `README.md`, `docs/runbooks/deploy.md`                                                     |
-| `.github/workflows/**`, Docker, deploy                                                            | `docs/runbooks/deploy.md`                                                                       |
-| New `apps/` or `packages/` directory                                                              | package table in `CLAUDE.md`, `docs/architecture/overview.md`, `docs/README.md`                 |
-| New external runtime dependency in any `package.json`                                             | Consider a new ADR in `docs/adr/`                                                               |
-| Foundational tool swap, new infrastructure, change to auth/settlement/matching/runtime invariants | New ADR in `docs/adr/`                                                                          |
-| New canonical domain term, or rename of an existing one                                           | `UBIQUITOUS_LANGUAGE.md`                                                                        |
+| What changed                                                                                      | Docs to check                                                                                                  |
+| ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `packages/db/**`, schema, migrations                                                              | `packages/db/README.md`, `docs/architecture/overview.md`                                                       |
+| `packages/auth/**`, broker identity, API keys                                                     | `packages/auth/README.md`, `UBIQUITOUS_LANGUAGE.md` (Broker)                                                   |
+| `packages/matching-engine/**`, matching/price-time rules, partial fills                           | `packages/matching-engine/README.md`, `docs/architecture/overview.md`, `UBIQUITOUS_LANGUAGE.md`                |
+| Order lifecycle, REST routes, MCP tools, Inngest jobs/realtime, webhooks                          | `docs/architecture/overview.md`, `docs/README.md`                                                              |
+| Any package's public API (exports in `src/index.ts`)                                              | That package's `README.md`                                                                                     |
+| `apps/web/.env.example` or a new env var                                                          | root `README.md`, `docs/runbooks/deploy.md`                                                                    |
+| `.github/workflows/**`, Docker, deploy                                                            | `docs/runbooks/deploy.md`                                                                                      |
+| New `apps/` or `packages/` directory                                                              | package table in `CLAUDE.md`, `docs/architecture/{package-guide,repo-structure,overview}.md`, `docs/README.md` |
+| New external runtime dependency in any `package.json`                                             | Consider a new ADR in `docs/adr/`                                                                              |
+| Foundational tool swap, new infrastructure, change to auth/settlement/matching/runtime invariants | New ADR in `docs/adr/`                                                                                         |
+| New canonical domain term, or rename of an existing one                                           | `UBIQUITOUS_LANGUAGE.md`                                                                                       |
 
 **Act on what the review surfaces — do not default to skip:**
 
