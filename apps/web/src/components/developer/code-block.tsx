@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { Check, Copy } from 'lucide-react'
+import { useCopy } from '@/lib/use-copy'
 
 export interface CodeBlockProps {
   /** Short label shown in the block's header bar (e.g. the protocol or "cURL"). */
@@ -18,12 +18,7 @@ export interface CodeBlockProps {
  * developer page's endpoints and examples scannable and copy-pasteable.
  */
 export function CodeBlock({ label, code, ariaLabel }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = async () => {
-    await navigator.clipboard?.writeText(code)
-    setCopied(true)
-  }
+  const { copied, copy } = useCopy()
 
   return (
     <div className="overflow-hidden rounded-md border border-border bg-muted/40">
@@ -31,7 +26,7 @@ export function CodeBlock({ label, code, ariaLabel }: CodeBlockProps) {
         <span className="font-mono text-xs text-muted-foreground">{label}</span>
         <button
           type="button"
-          onClick={() => void handleCopy()}
+          onClick={() => void copy(code)}
           aria-label="Copy to clipboard"
           className="inline-flex items-center gap-1 rounded text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
