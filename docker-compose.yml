@@ -6,9 +6,18 @@
 # the build succeed). Provide real keys for working auth:
 #   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=... CLERK_SECRET_KEY=... docker compose up --build
 
+# NEXT_PUBLIC_* values are inlined into the client bundle at `next build`, so the
+# Clerk routing/redirect URLs and the app origin must be present as build args.
+# They are static, non-secret defaults; the publishable/secret keys still come
+# from the host env (see header).
 x-build-args: &build-args
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-pk_test_Y2xlcmsuZXhhbXBsZS5jb20k}
   CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-sk_test_placeholder}
+  NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
+  NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+  NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: /app
+  NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: /app
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
   DATABASE_URL: postgres://decade:decade@postgres:5432/decade
 
 services:
@@ -54,6 +63,7 @@ services:
       DATABASE_URL: postgres://decade:decade@postgres:5432/decade
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-pk_test_Y2xlcmsuZXhhbXBsZS5jb20k}
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-sk_test_placeholder}
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
       INNGEST_DEV: '1'
       INNGEST_BASE_URL: http://inngest:8288
     ports:

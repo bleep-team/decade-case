@@ -7,6 +7,7 @@ export {
   stocks,
   orders,
   trades,
+  positions,
   webhookEndpoints,
   webhookDeliveries,
 } from './tables.js'

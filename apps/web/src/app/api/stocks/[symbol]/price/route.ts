@@ -1,24 +1,17 @@
 import { NextResponse } from 'next/server'
-import { desc, eq } from 'drizzle-orm'
-import { trades } from '@decade/db'
 import { getDb } from '@decade/exchange-runtime'
-import { movingAverage } from '@decade/matching-engine'
+import { getPrice } from '@/lib/exchange-service'
 
 export const dynamic = 'force-dynamic'
 
-const SAMPLE_SIZE = 20
-
-/** Current price for a symbol: a moving average over recent execution prices. */
+/**
+ * Current price for a symbol, per the case: the order-book midpoint (mean of the
+ * best bid and best ask). When the book is one-sided or empty there is no
+ * midpoint, so it falls back first to a moving average over recent trades, then
+ * to the symbol's seeded reference price. The derivation lives in the shared
+ * exchange service, so the MCP `get_price` tool answers identically.
+ */
 export async function GET(_request: Request, { params }: { params: Promise<{ symbol: string }> }) {
   const { symbol } = await params
-  const db = getDb()
-  const recent = await db
-    .select()
-    .from(trades)
-    .where(eq(trades.symbol, symbol))
-    .orderBy(desc(trades.executedAt))
-    .limit(SAMPLE_SIZE)
-
-  const prices = recent.map((trade) => trade.priceCents)
-  return NextResponse.json({ symbol, price: movingAverage(prices), sampleSize: prices.length })
+  return NextResponse.json(await getPrice(getDb(), symbol))
 }

@@ -27,6 +27,7 @@
     }
   },
   "devDependencies": {
+    "@ai-hero/sandcastle": "0.5.8",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@decade/eslint-config": "workspace:*",

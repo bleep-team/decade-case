@@ -140,32 +140,33 @@ git diff origin/main...HEAD --name-only
 
 **This is an active step — read the docs, don't just list them.** Scope the change first, then audit proportionally.
 
-**Classify the change.** Treat it as a **major surface change** if the diff includes any of: a new `packages/<name>/` or `apps/<name>/` directory; a schema or migration change under `packages/db/**`; a new top-level runtime dependency in a `package.json`; a new external surface, route namespace, ingress, or background-job family (e.g. a new channel); or a change to a multi-tenancy / auth / runtime invariant. Otherwise it is a **routine change**.
+**Classify the change.** Treat it as a **major surface change** if the diff includes any of: a new `packages/<name>/` or `apps/<name>/` directory; a schema or migration change under `packages/db/**`; a new top-level runtime dependency in a `package.json`; a new external surface, route namespace, MCP tool, Inngest job/realtime channel, or webhook family; or a change to an auth, settlement, matching, or runtime invariant (the money-in-cents and price-time-priority rules at the heart of the exchange). Otherwise it is a **routine change**.
 
 - **Routine change** — open the specific docs the hint table below points at, read them against the diff, and fix anything stale. Listing candidates is not enough; the failure mode is skimming a file you never opened.
 - **Major surface change** — spawn a docs-audit sub-agent (Explore or general-purpose) to _read_, not path-map. Give it: a short description of what landed (new package / surface / tables / env vars), the changed-file list, and the docs that enumerate things which may now be incomplete. Tell it to grep for and read every place that enumerates surfaces, packages, channels, integrations, runtimes, env vars, domain terms, and the guide & ADR indexes, then return a **ranked findings list** — each finding with the file path, the stale or missing line quoted, a concrete fix, and a severity (HIGH = factually wrong or a setup blocker; LOW = nice-to-have). Require it to answer the net-new gate below. A whole new package or surface is the case a path-lookup most reliably misses — this is where the sub-agent earns its keep, and a PRD-sized branch is almost always a major surface change.
 
 **Net-new gate (check explicitly on a major surface change — these are the docs most often forgotten):**
 
-- New package → its `README.md` + the package table in `CLAUDE.md` + `docs/architecture/repo-structure.md` + `docs/architecture/package-guide.md`.
-- New external surface or integration → a `docs/guides/<name>.md` guide + its entry in the `docs/README.md` Quick Links.
-- New architectural decision, external dependency, or invariant change → a new ADR in `docs/adr/` + the ADR index.
-- New or renamed canonical domain term → `UBIQUITOUS_LANGUAGE.md`.
+- New package → its `README.md` + the package table in `CLAUDE.md` + `docs/architecture/package-guide.md` + the directory tree in `docs/architecture/repo-structure.md` + the module map in `docs/architecture/overview.md` + the `docs/README.md` index.
+- New external surface or integration (REST route family, MCP tool, Inngest job/realtime channel, webhook event) → the order-lifecycle / surfaces section of `docs/architecture/overview.md`, linked from `docs/README.md`.
+- New architectural decision, external dependency, or invariant change → a new ADR in `docs/adr/` + the `docs/adr/README.md` index.
+- New or renamed canonical domain term (Bid/Ask, Order, Trade, Book, Cents…) → `UBIQUITOUS_LANGUAGE.md`.
 
 The hint table below maps changed paths to docs that frequently go stale. It **feeds** the audit; it does not replace reading them:
 
-| What changed                                                                                | Docs to check                                                               |
-| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `packages/auth/**`, multi-tenancy logic, RLS, role checks                                   | `docs/architecture/multi-tenancy.md`, `packages/auth/README.md`             |
-| `packages/db/**`, schema, migrations, RLS policies                                          | `packages/db/README.md`, `docs/architecture/overview.md`                    |
-| `packages/llm/**`, model swaps, gateway config                                              | `docs/guides/llm-gateway.md`, `packages/llm/README.md`                      |
-| Any package's public API (exports in `src/index.ts`)                                        | That package's `README.md`                                                  |
-| `.env.example` (root or any package)                                                        | `docs/getting-started.md`                                                   |
-| `.github/workflows/**`                                                                      | `docs/operations/ci-cd-pipeline.md`                                         |
-| New `apps/` or `packages/` directory                                                        | `docs/architecture/repo-structure.md`, `docs/architecture/package-guide.md` |
-| New external runtime dependency in any `package.json`                                       | Consider a new ADR in `docs/adr/`                                           |
-| Foundational tool swap, new infrastructure, change to multi-tenancy/auth/runtime invariants | New ADR in `docs/adr/`                                                      |
-| New canonical domain term, or rename of an existing one                                     | `UBIQUITOUS_LANGUAGE.md`                                                    |
+| What changed                                                                                      | Docs to check                                                                                                  |
+| ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `packages/db/**`, schema, migrations                                                              | `packages/db/README.md`, `docs/architecture/overview.md`                                                       |
+| `packages/auth/**`, broker identity, API keys                                                     | `packages/auth/README.md`, `UBIQUITOUS_LANGUAGE.md` (Broker)                                                   |
+| `packages/matching-engine/**`, matching/price-time rules, partial fills                           | `packages/matching-engine/README.md`, `docs/architecture/overview.md`, `UBIQUITOUS_LANGUAGE.md`                |
+| Order lifecycle, REST routes, MCP tools, Inngest jobs/realtime, webhooks                          | `docs/architecture/overview.md`, `docs/README.md`                                                              |
+| Any package's public API (exports in `src/index.ts`)                                              | That package's `README.md`                                                                                     |
+| `apps/web/.env.example` or a new env var                                                          | root `README.md`, `docs/runbooks/deploy.md`                                                                    |
+| `.github/workflows/**`, Docker, deploy                                                            | `docs/runbooks/deploy.md`                                                                                      |
+| New `apps/` or `packages/` directory                                                              | package table in `CLAUDE.md`, `docs/architecture/{package-guide,repo-structure,overview}.md`, `docs/README.md` |
+| New external runtime dependency in any `package.json`                                             | Consider a new ADR in `docs/adr/`                                                                              |
+| Foundational tool swap, new infrastructure, change to auth/settlement/matching/runtime invariants | New ADR in `docs/adr/`                                                                                         |
+| New canonical domain term, or rename of an existing one                                           | `UBIQUITOUS_LANGUAGE.md`                                                                                       |
 
 **Act on what the review surfaces — do not default to skip:**
 

@@ -1,0 +1,78 @@
+import type { Cents } from '@decade/types'
+import type { MatchResult } from '@decade/matching-engine'
+
+/** How much a broker's cash balance moves (signed integer cents). */
+export interface CashDelta {
+  brokerId: string
+  deltaCents: Cents
+}
+
+/** How much a broker's holding in one symbol moves (signed whole shares). */
+export interface PositionDelta {
+  brokerId: string
+  symbol: string
+  deltaQuantity: number
+}
+
+/** The atomic moves a `MatchResult` implies — the input to settlement. */
+export interface SettlementDeltas {
+  cash: CashDelta[]
+  positions: PositionDelta[]
+}
+
+/**
+ * Derive the per-broker cash moves and per-`(broker, symbol)` position moves a
+ * (possibly truncated) `MatchResult` settles to.
+ *
+ * Broker-level double-entry: on each fill the buyer pays the notional and gains
+ * shares while the seller receives the notional and loses them. Deltas are
+ * aggregated per broker (cash) and per `(broker, symbol)` (positions), so a
+ * taker that swept several counterparties yields one move each. Because every
+ * fill contributes equal-and-opposite legs, total cash and total shares are
+ * conserved regardless of cash-leg enforcement — the soundness guarantee.
+ *
+ * Pure and DB-free: the persisting layer applies these deltas inside the same
+ * transaction as the trade inserts.
+ */
+export function computeSettlementDeltas(result: MatchResult): SettlementDeltas {
+  const cashByBroker = new Map<string, number>()
+  const positionByKey = new Map<string, PositionDelta>()
+
+  for (const trade of result.trades) {
+    const notional = trade.price * trade.quantity
+
+    // Buyer: cash out, shares in.
+    addCash(cashByBroker, trade.bidBrokerId, -notional)
+    addPosition(positionByKey, trade.bidBrokerId, trade.symbol, trade.quantity)
+
+    // Seller: cash in, shares out (may go negative — a short, which is allowed).
+    addCash(cashByBroker, trade.askBrokerId, notional)
+    addPosition(positionByKey, trade.askBrokerId, trade.symbol, -trade.quantity)
+  }
+
+  return {
+    cash: [...cashByBroker.entries()].map(([brokerId, deltaCents]) => ({ brokerId, deltaCents })),
+    positions: [...positionByKey.values()],
+  }
+}
+
+function addCash(map: Map<string, number>, brokerId: string, deltaCents: number): void {
+  map.set(brokerId, (map.get(brokerId) ?? 0) + deltaCents)
+}
+
+function addPosition(
+  map: Map<string, PositionDelta>,
+  brokerId: string,
+  symbol: string,
+  deltaQuantity: number,
+): void {
+  // `|` is safe as a delimiter: brokerIds are UUIDs and symbols are tickers,
+  // neither of which can contain it, so the composite key never collides.
+  const key = `${brokerId}|${symbol}`
+  const existing = map.get(key)
+  if (existing) {
+    existing.deltaQuantity += deltaQuantity
+  } else {
+    map.set(key, { brokerId, symbol, deltaQuantity })
+  }
+}

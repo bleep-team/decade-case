@@ -9,7 +9,15 @@ export type OrderSide = 'bid' | 'ask'
 /** Limit orders carry a price; market orders take the best available price. */
 export type OrderType = 'limit' | 'market'
 
-export type OrderStatus = 'open' | 'partially_filled' | 'filled' | 'cancelled' | 'expired'
+export type OrderStatus =
+  | 'open'
+  | 'partially_filled'
+  | 'filled'
+  | 'cancelled'
+  | 'expired'
+  // A fill the broker could not cover at settlement (cash-leg enforcement);
+  // distinct from a user/market-maker `cancelled`.
+  | 'rejected'
 
 /** What a broker submits on behalf of one of their customers. */
 export interface SubmitOrderInput {

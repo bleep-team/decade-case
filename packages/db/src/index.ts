@@ -3,6 +3,7 @@ import {
   stocks,
   orders,
   trades,
+  positions,
   webhookEndpoints,
   webhookDeliveries,
   orderSide,
@@ -16,6 +17,7 @@ export {
   stocks,
   orders,
   trades,
+  positions,
   webhookEndpoints,
   webhookDeliveries,
   orderSide,
@@ -26,6 +28,7 @@ export {
 
 export { createDbClient } from './client.js'
 export type { Database } from './client.js'
+export { seedStocks, seedMockBrokers, seedMarketData, SEED_STOCKS, MOCK_BROKERS } from './seed.js'
 export { toDomainOrder } from './mappers.js'
 export type { OrderRow } from './mappers.js'
 
@@ -33,5 +36,7 @@ export type Broker = typeof brokers.$inferSelect
 export type NewBroker = typeof brokers.$inferInsert
 export type NewOrder = typeof orders.$inferInsert
 export type TradeRow = typeof trades.$inferSelect
+export type Position = typeof positions.$inferSelect
+export type NewPosition = typeof positions.$inferInsert
 export type WebhookEndpointRow = typeof webhookEndpoints.$inferSelect
 export type StockRow = typeof stocks.$inferSelect

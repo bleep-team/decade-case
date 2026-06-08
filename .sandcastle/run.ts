@@ -11,7 +11,7 @@ const MAX_PARALLEL = 4
 // Conductor workspaces where the folder name isn't the repo name).
 const IMAGE_NAME = 'sandcastle:decade'
 
-const opusHigh = sandcastle.claudeCode('claude-opus-4-7', { effort: 'high' })
+const opusHigh = sandcastle.claudeCode('claude-opus-4-8', { effort: 'high' })
 const sonnetHigh = sandcastle.claudeCode('claude-sonnet-4-6', { effort: 'high' })
 
 /**

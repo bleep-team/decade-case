@@ -18,9 +18,16 @@ suite('runMatch (integration)', () => {
       sql`TRUNCATE trades, webhook_deliveries, webhook_endpoints, orders, brokers RESTART IDENTITY CASCADE`,
     )
     await db.insert(stocks).values({ symbol: 'AAPL', name: 'Apple Inc.' }).onConflictDoNothing()
+    // Both brokers start funded so the cash-leg enforcement (a buyer never
+    // settles into negative cash) lets a covered match through.
     await db.insert(brokers).values([
-      { id: SELLER, clerkUserId: 'user_seller', name: 'Seller Broker', cashBalanceCents: 0 },
-      { id: BUYER, clerkUserId: 'user_buyer', name: 'Buyer Broker', cashBalanceCents: 0 },
+      {
+        id: SELLER,
+        clerkUserId: 'user_seller',
+        name: 'Seller Broker',
+        cashBalanceCents: 100_000_000,
+      },
+      { id: BUYER, clerkUserId: 'user_buyer', name: 'Buyer Broker', cashBalanceCents: 100_000_000 },
     ])
   })
 
@@ -81,8 +88,9 @@ suite('runMatch (integration)', () => {
 
     const [seller] = await db.select().from(brokers).where(eq(brokers.id, SELLER))
     const [buyer] = await db.select().from(brokers).where(eq(brokers.id, BUYER))
-    expect(seller?.cashBalanceCents).toBe(1_000_000) // +1000c * 1000
-    expect(buyer?.cashBalanceCents).toBe(-1_000_000)
+    const notional = 1000 * 1000 // 1000 shares at the seller's 1000c
+    expect(seller?.cashBalanceCents).toBe(100_000_000 + notional)
+    expect(buyer?.cashBalanceCents).toBe(100_000_000 - notional)
   })
 
   it('partially fills the larger resting order and leaves the remainder', async () => {

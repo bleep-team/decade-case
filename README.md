@@ -58,18 +58,24 @@ docs/                       # Architecture, ADRs, runbooks — see docs/README.m
 
 ### Run the whole stack with Docker (reproducible)
 
+One command brings up Postgres, runs migrations + seeds reference stocks, and
+starts the web app and Inngest dev server. First free ports **3000**, **5432**,
+and **8288** (stop any local `pnpm dev` / Inngest server), then:
+
 ```bash
+# Working auth needs real Clerk keys. They are inlined into the client bundle at
+# BUILD time, so they must be present during the build (hence --build) — and you
+# must re-run with --build whenever they change. Source them from apps/web/.env:
+export $(grep -E '^(NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY|CLERK_SECRET_KEY)=' apps/web/.env | xargs)
 docker compose up --build
+
 # app:          http://localhost:3000
 # Inngest dev:  http://localhost:8288
 ```
 
-This brings up Postgres, runs migrations + seeds reference stocks, starts the web
-app, and starts the Inngest dev server. Provide real Clerk keys for working auth:
-
-```bash
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_... CLERK_SECRET_KEY=sk_... docker compose up --build
-```
+Without real Clerk keys the stack still builds and boots on placeholders — you
+just can't sign in. Tear it down with `docker compose down` (add `-v` to also
+drop the Postgres volume).
 
 ### Run locally with pnpm
 
@@ -96,16 +102,22 @@ pnpm dev:inngest                              # Inngest dev server (separate she
 
 ## API (v1)
 
-| Method | Path                        | Purpose                                       |
-| ------ | --------------------------- | --------------------------------------------- |
-| `POST` | `/api/orders`               | Submit a bid/ask order → `{ orderId }`        |
-| `GET`  | `/api/orders/:id`           | Order status                                  |
-| `GET`  | `/api/stocks/:symbol/book`  | Top-of-book bids/asks (`?depth=10`)           |
-| `GET`  | `/api/stocks/:symbol/price` | Current price (moving average)                |
-| `GET`  | `/api/brokers/:id/balance`  | Broker cash balance                           |
-| `GET`  | `/api/health`               | Liveness + DB readiness                       |
-| `POST` | `/api/inngest`              | Inngest function endpoint                     |
-| `POST` | `/api/mcp`                  | MCP server (Streamable HTTP) — exchange tools |
+| Method | Path                        | Purpose                                                                    |
+| ------ | --------------------------- | -------------------------------------------------------------------------- |
+| `POST` | `/api/orders`               | Submit a bid/ask order → `{ orderId, status }`                             |
+| `GET`  | `/api/orders`               | List the broker's own orders (paginated)                                   |
+| `GET`  | `/api/orders/:id`           | Order status                                                               |
+| `POST` | `/api/orders/:id/cancel`    | Cancel a resting order                                                     |
+| `GET`  | `/api/trades`               | The broker's executions (paginated)                                        |
+| `GET`  | `/api/stocks/:symbol/book`  | Top-of-book bids/asks (`?depth=10`)                                        |
+| `GET`  | `/api/stocks/:symbol/price` | Current price (order-book midpoint)                                        |
+| `GET`  | `/api/brokers/:id/balance`  | Broker cash balance + positions                                            |
+| `POST` | `/api/webhooks`             | Register/update the broker's webhook endpoint                              |
+| `GET`  | `/api/webhooks/deliveries`  | Recent webhook delivery attempts                                           |
+| `POST` | `/api/demo/reset`           | Reset the broker (cancel orders, restore cash)                             |
+| `GET`  | `/api/health`               | Liveness + DB readiness                                                    |
+| `POST` | `/api/inngest`              | Inngest function endpoint                                                  |
+| `*`    | `/api/mcp`                  | MCP server (Streamable HTTP) — exchange tools; Clerk OAuth or API-key auth |
 
 ## Documentation
 

@@ -1,23 +1,17 @@
 import { NextResponse } from 'next/server'
-import { eq } from 'drizzle-orm'
-import { brokers } from '@decade/db'
 import { getDb } from '@decade/exchange-runtime'
+import { getBrokerBalance } from '@/lib/exchange-service'
 
 export const dynamic = 'force-dynamic'
 
-/** Return the settled cash balance of a broker. */
+/** Return a broker's balance: settled cash plus its signed share positions. */
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const db = getDb()
-  const [row] = await db.select().from(brokers).where(eq(brokers.id, id))
+  const balance = await getBrokerBalance(getDb(), id)
 
-  if (!row) {
+  if (!balance) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 })
   }
 
-  return NextResponse.json({
-    brokerId: row.id,
-    name: row.name,
-    cashBalanceCents: row.cashBalanceCents,
-  })
+  return NextResponse.json(balance)
 }

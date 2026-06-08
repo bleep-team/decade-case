@@ -7,7 +7,6 @@ const submitOrder = z.object(submitOrderShape)
 describe('submitOrderShape', () => {
   it('accepts a valid limit order', () => {
     const parsed = submitOrder.parse({
-      brokerId: 'brk_1',
       ownerDocument: 'doc_1',
       symbol: 'AAPL',
       side: 'bid',
@@ -21,7 +20,6 @@ describe('submitOrderShape', () => {
 
   it('defaults the order type to limit', () => {
     const parsed = submitOrder.parse({
-      brokerId: 'brk_1',
       ownerDocument: 'doc_1',
       symbol: 'AAPL',
       side: 'ask',
@@ -30,10 +28,13 @@ describe('submitOrderShape', () => {
     expect(parsed.type).toBe('limit')
   })
 
+  it('does not carry a brokerId — the acting broker comes from the identity', () => {
+    expect(Object.keys(submitOrderShape)).not.toContain('brokerId')
+  })
+
   it('rejects an unknown side', () => {
     expect(() =>
       submitOrder.parse({
-        brokerId: 'brk_1',
         ownerDocument: 'doc_1',
         symbol: 'AAPL',
         side: 'buy',
@@ -45,7 +46,6 @@ describe('submitOrderShape', () => {
   it('rejects a non-positive quantity', () => {
     expect(() =>
       submitOrder.parse({
-        brokerId: 'brk_1',
         ownerDocument: 'doc_1',
         symbol: 'AAPL',
         side: 'bid',
