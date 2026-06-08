@@ -5,9 +5,9 @@ import { GuideView } from './guide-view'
 afterEach(cleanup)
 
 describe('GuideView', () => {
-  it('renders the guide with its section headings', () => {
+  it('renders the page with its section headings', () => {
     render(<GuideView />)
-    expect(screen.getByRole('heading', { level: 1, name: 'Guide' })).not.toBeNull()
+    expect(screen.getByRole('heading', { level: 1, name: /how it works/i })).not.toBeNull()
     expect(screen.getByRole('heading', { name: /how matching works/i })).not.toBeNull()
     expect(screen.getByRole('heading', { name: /for developers/i })).not.toBeNull()
   })
@@ -21,6 +21,6 @@ describe('GuideView', () => {
 
   it('shows the one-command container run', () => {
     render(<GuideView />)
-    expect(screen.getByText('docker compose up --build')).not.toBeNull()
+    expect(screen.getByText(/docker compose up --build/)).not.toBeNull()
   })
 })

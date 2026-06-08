@@ -1,15 +1,23 @@
 import Link from 'next/link'
-import { ArrowRight, BookOpen } from 'lucide-react'
-import { Button } from '@decade/ui/components/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@decade/ui/components/card'
+import { ArrowRight } from 'lucide-react'
+import { GuideNav } from './guide-nav'
 
-/** One requirement, in plain language, with a worked example and how to try it. */
+/** A worked example shown as bid/ask chips resolving to an outcome. */
+interface TradeExample {
+  buy?: string
+  sell?: string
+  result: string
+}
+
+/** One requirement, in plain language, with how to try it. */
 interface GuideItem {
   title: string
   /** What the case asks, in accessible words. */
   what: string
-  /** A worked example lifted from the brief, when one helps. */
-  example?: string
+  /** A worked example from the brief, rendered as trade chips. */
+  trade?: TradeExample
+  /** A plain-text example, when chips do not fit. */
+  note?: string
   /** Numbered "try it here" steps. */
   steps: string[]
   /** Where to go to try it. */
@@ -17,6 +25,7 @@ interface GuideItem {
 }
 
 interface GuideSection {
+  id: string
   title: string
   intro: string
   items: GuideItem[]
@@ -27,35 +36,36 @@ const DEVELOPER = { href: '/app/developer', label: 'Open the developer page' }
 
 const SECTIONS: GuideSection[] = [
   {
+    id: 'matching',
     title: 'How matching works',
     intro:
-      'Brokers post buy (bid) and sell (ask) orders. The engine pairs a buyer and a seller for the same stock as soon as their prices line up. A market maker is always quoting, so your orders can trade even when no one else is online.',
+      'Brokers post buy (bid) and sell (ask) orders. The engine pairs a buyer and a seller for the same stock the moment their prices line up. A market maker is always quoting, so your orders can trade even when no one else is online.',
     items: [
       {
         title: 'Orders trade when prices cross',
         what: 'A bid is the most a buyer will pay; an ask is the least a seller will accept. They trade as soon as the bid is at or above the ask.',
-        example: 'Sell 1,000 AAPL at $10 and buy 1,000 at $10. Both fill at $10.',
+        trade: { buy: '1,000 @ $10', sell: '1,000 @ $10', result: 'Both fill at $10' },
         steps: [
           'In the order ticket, choose Buy and Limit.',
-          'Set a price at or above the best ask shown in the order book, add a quantity, and Submit.',
-          'It fills instantly. Watch the Fills tab and your Cash update live.',
+          'Set a price at or above the best ask in the order book, add a quantity, and Submit.',
+          'It fills instantly — watch the Fills tab and your Cash update live.',
         ],
         action: TERMINAL,
       },
       {
         title: 'No match when prices do not cross',
         what: 'If the highest bid is still below the lowest ask, nothing trades. Both orders wait on the book.',
-        example: 'Sell 1,000 at $20, buy 1,000 at $10. Neither executes.',
+        trade: { buy: '1,000 @ $10', sell: '1,000 @ $20', result: 'No trade' },
         steps: [
-          'Place a Buy Limit well below the best ask. The ticket reads "Rests on the book".',
-          'Submit, then open the Orders tab: it sits there as "open" with nothing filled.',
+          'Place a Buy Limit well below the best ask — the ticket reads “Rests on the book”.',
+          'Submit, then open the Orders tab: it sits there as “open” with nothing filled.',
         ],
         action: TERMINAL,
       },
       {
         title: 'A price gap fills at the seller’s price',
         what: 'When a buyer will pay more than the seller asks, the trade happens at the seller’s (ask) price. The buyer never overpays.',
-        example: 'Sell at $10, buy at $20. Both execute at $10.',
+        trade: { buy: '1,000 @ $20', sell: '1,000 @ $10', result: 'Fill at $10' },
         steps: [
           'Place a Buy Limit above the best ask and Submit.',
           'Open the Fills tab: the price is the ask, not your higher bid.',
@@ -65,20 +75,20 @@ const SECTIONS: GuideSection[] = [
       {
         title: 'Big orders fill partially',
         what: 'One order can fill against several smaller ones. Whatever is left over stays on the book.',
-        example: 'Sell 1,000, buy 500. 500 trade now; 500 remain for later.',
+        trade: { buy: '500', sell: '1,000', result: '500 fill, 500 rest' },
         steps: [
           'Place a Buy larger than the best ask’s quantity (shown in the order book).',
-          'Submit, then open Orders: it shows "partially_filled" with a remaining quantity.',
+          'Submit, then open Orders: it shows “partially_filled” with a remaining quantity.',
         ],
         action: TERMINAL,
       },
       {
         title: 'Ties break by time',
-        what: 'When two orders sit at the same price, the one submitted first trades first (price-time priority).',
-        example: 'Two sells at $10. Whoever posted first is matched first.',
+        what: 'When two orders sit at the same price, the one submitted first trades first — price-time priority.',
+        note: 'Two sells at $10: whoever posted first is matched first.',
         steps: [
           'Each price level in the order book shows how many orders rest there.',
-          'Orders at one price are always filled oldest-first; the engine enforces it.',
+          'Orders at one price always fill oldest-first; the engine enforces it.',
           'To see it directly, rest two buys at the same price and watch the earlier one fill first.',
         ],
         action: TERMINAL,
@@ -86,13 +96,14 @@ const SECTIONS: GuideSection[] = [
     ],
   },
   {
+    id: 'placing',
     title: 'Placing orders',
     intro:
       'Every order records who placed it, for which customer, what to trade, the price and quantity, and when it expires. Submit from the ticket here, or over the REST API.',
     items: [
       {
         title: 'Submit a buy or sell',
-        what: 'An order has a side (Buy/Sell), a type (Limit or Market), a quantity, a price, an expiry, and the customer’s document number. Your broker identity comes from your login, not the form.',
+        what: 'An order carries a side (Buy/Sell), a type (Limit or Market), a quantity, a price, an expiry, and the customer’s document number. Your broker identity comes from your login, not the form.',
         steps: [
           'Fill the order ticket and Submit.',
           'You get back an order id, and the order appears in your Orders tab.',
@@ -103,7 +114,7 @@ const SECTIONS: GuideSection[] = [
         title: 'Market orders',
         what: 'A market order skips the price and takes the best available immediately. Any quantity it cannot fill is cancelled, never left resting.',
         steps: [
-          'In the ticket, choose Market. The price field disables.',
+          'In the ticket, choose Market — the price field disables.',
           'Set a quantity and Submit, then open Fills to see it executed at the maker’s price.',
         ],
         action: TERMINAL,
@@ -120,6 +131,7 @@ const SECTIONS: GuideSection[] = [
     ],
   },
   {
+    id: 'reading',
     title: 'Reading the market',
     intro:
       'The terminal shows the price, the book, and your balance live. Each is also a REST endpoint.',
@@ -154,6 +166,7 @@ const SECTIONS: GuideSection[] = [
     ],
   },
   {
+    id: 'developers',
     title: 'For developers',
     intro:
       'Everything in the terminal is also a REST endpoint, a signed webhook, and an MCP tool for AI agents.',
@@ -184,92 +197,160 @@ const SECTIONS: GuideSection[] = [
   },
 ]
 
-const DOCKER_COMMAND = 'docker compose up --build'
+const NAV = SECTIONS.map((s) => ({ id: s.id, title: s.title })).concat({
+  id: 'run',
+  title: 'Run it yourself',
+})
+
+function TradeChips({ buy, sell, result }: TradeExample) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs">
+      {buy ? (
+        <span className="rounded-md border border-gain/30 bg-gain/10 px-2 py-1 font-mono text-gain">
+          BUY {buy}
+        </span>
+      ) : null}
+      {sell ? (
+        <span className="rounded-md border border-loss/30 bg-loss/10 px-2 py-1 font-mono text-loss">
+          SELL {sell}
+        </span>
+      ) : null}
+      <ArrowRight className="size-3.5 text-muted-foreground" aria-hidden="true" />
+      <span className="rounded-md border border-border bg-muted/50 px-2 py-1 font-mono text-foreground">
+        {result}
+      </span>
+    </div>
+  )
+}
+
+function Entry({ item, index }: { item: GuideItem; index: number }) {
+  return (
+    <li className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-4">
+      <span className="pt-0.5 font-mono text-sm text-muted-foreground">
+        {String(index + 1).padStart(2, '0')}
+      </span>
+      <div className="space-y-3 border-b border-border/60 pb-7 last:border-0 last:pb-0">
+        <h3 className="font-medium tracking-tight text-foreground">{item.title}</h3>
+        <p className="text-sm text-muted-foreground">{item.what}</p>
+        {item.trade ? <TradeChips {...item.trade} /> : null}
+        {item.note ? (
+          <p className="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+            {item.note}
+          </p>
+        ) : null}
+        <div className="space-y-1.5">
+          <p className="text-[0.7rem] font-medium uppercase tracking-wider text-muted-foreground">
+            Try it here
+          </p>
+          <ol className="list-decimal space-y-1 pl-5 text-sm text-foreground marker:font-mono marker:text-xs marker:text-muted-foreground">
+            {item.steps.map((step) => (
+              <li key={step} className="pl-1">
+                {step}
+              </li>
+            ))}
+          </ol>
+        </div>
+        {item.action ? (
+          <Link
+            href={item.action.href}
+            className="group/link inline-flex items-center gap-1.5 rounded text-sm font-medium text-brand transition-colors hover:text-brand/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            {item.action.label}
+            <ArrowRight
+              className="size-3.5 transition-transform group-hover/link:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </Link>
+        ) : null}
+      </div>
+    </li>
+  )
+}
 
 /**
- * The Guide page: a plain-language tour that maps the exchange’s capabilities to
- * how a reviewer can try each one in the app. Static and presentational; the
- * "try it here" actions link to the terminal and developer surfaces.
+ * The How-it-works page: a plain-language, editorial tour that maps each
+ * capability of the exchange to a concrete way to verify it. The matching
+ * examples render as bid/ask chips resolving to an outcome, so the page
+ * demonstrates the product in its own visual language. Static and presentational;
+ * the "try it here" actions link to the terminal and developer surfaces.
  */
 export function GuideView() {
   return (
-    <div className="mx-auto max-w-3xl space-y-12 pb-12">
-      <header className="space-y-3">
-        <div className="flex size-11 items-center justify-center rounded-xl bg-brand/10 ring-1 ring-brand/20">
-          <BookOpen className="size-5 text-brand" aria-hidden="true" />
-        </div>
-        <h1 className="text-2xl font-semibold tracking-tight">Guide</h1>
-        <p className="text-muted-foreground">
+    <div className="relative mx-auto max-w-5xl">
+      {/* Brand-accent glow behind the header. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-0 -z-10 h-56 w-[40rem] max-w-full -translate-x-1/2 rounded-full bg-brand/10 blur-[120px]"
+      />
+
+      <header className="max-w-2xl">
+        <p className="font-mono text-xs uppercase tracking-[0.22em] text-brand">Decade Exchange</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight">How it works</h1>
+        <p className="mt-3 text-muted-foreground">
           A short tour of what the exchange does and how to try each part yourself. A market maker
           is always quoting, so your orders can trade even when no one else is online. Use Reset
-          demo in the header anytime to start fresh.
+          demo in the header to start fresh anytime.
         </p>
       </header>
 
-      {SECTIONS.map((section) => (
-        <section key={section.title} className="space-y-4">
-          <div className="space-y-1.5">
-            <h2 className="text-lg font-semibold tracking-tight">{section.title}</h2>
-            <p className="text-sm text-muted-foreground">{section.intro}</p>
-          </div>
-          <div className="space-y-4">
-            {section.items.map((item) => (
-              <Card key={item.title}>
-                <CardHeader>
-                  <CardTitle className="text-base">{item.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-foreground">{item.what}</p>
-                  {item.example ? (
-                    <p className="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">Example. </span>
-                      {item.example}
-                    </p>
-                  ) : null}
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Try it here
-                    </p>
-                    <ol className="list-decimal space-y-1 pl-5 text-sm text-foreground marker:text-muted-foreground">
-                      {item.steps.map((step) => (
-                        <li key={step}>{step}</li>
-                      ))}
-                    </ol>
-                  </div>
-                  {item.action ? (
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={item.action.href}>
-                        {item.action.label}
-                        <ArrowRight className="size-4" aria-hidden="true" />
-                      </Link>
-                    </Button>
-                  ) : null}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-      ))}
+      <div className="mt-12 grid gap-12 lg:grid-cols-[180px_minmax(0,1fr)]">
+        <GuideNav sections={NAV} />
 
-      <section className="space-y-4">
-        <div className="space-y-1.5">
-          <h2 className="text-lg font-semibold tracking-tight">Run it yourself</h2>
-          <p className="text-sm text-muted-foreground">
-            The whole stack (Postgres, migrations, the web app, and the jobs runtime) comes up from
-            one command, in a reproducible container.
-          </p>
-        </div>
-        <Card>
-          <CardContent className="space-y-4 pt-6">
-            <pre className="overflow-x-auto rounded-md border border-border bg-muted/40 px-3 py-2 font-mono text-sm text-foreground">
-              <code>{DOCKER_COMMAND}</code>
-            </pre>
-            <p className="text-sm text-muted-foreground">
-              Then open <code>http://localhost:3000</code>, sign in, and place a trade.
+        <div className="min-w-0 space-y-16">
+          {SECTIONS.map((section, sectionIndex) => (
+            <section
+              key={section.id}
+              id={section.id}
+              className="scroll-mt-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:fill-mode-both motion-safe:duration-500"
+              style={{ animationDelay: `${sectionIndex * 70}ms` }}
+            >
+              <div className="flex items-baseline gap-3">
+                <span className="font-mono text-sm text-brand">
+                  {String(sectionIndex + 1).padStart(2, '0')}
+                </span>
+                <h2 className="text-xl font-semibold tracking-tight">{section.title}</h2>
+              </div>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{section.intro}</p>
+              <ul className="mt-6 space-y-7">
+                {section.items.map((item, i) => (
+                  <Entry key={item.title} item={item} index={i} />
+                ))}
+              </ul>
+            </section>
+          ))}
+
+          <section
+            id="run"
+            className="scroll-mt-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:fill-mode-both motion-safe:duration-500"
+            style={{ animationDelay: `${SECTIONS.length * 70}ms` }}
+          >
+            <div className="flex items-baseline gap-3">
+              <span className="font-mono text-sm text-brand">
+                {String(SECTIONS.length + 1).padStart(2, '0')}
+              </span>
+              <h2 className="text-xl font-semibold tracking-tight">Run it yourself</h2>
+            </div>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              The whole stack — Postgres, migrations, the web app, and the jobs runtime — comes up
+              from one command, in a reproducible container.
             </p>
-          </CardContent>
-        </Card>
-      </section>
+            <div className="mt-6 overflow-hidden rounded-lg border border-border bg-card">
+              <div className="border-b border-border px-4 py-2">
+                <span className="font-mono text-xs text-muted-foreground">terminal</span>
+              </div>
+              <pre className="overflow-x-auto px-4 py-3 font-mono text-sm text-foreground">
+                <code>
+                  <span className="select-none text-brand">$ </span>docker compose up --build
+                </code>
+              </pre>
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Then open <code className="font-mono text-foreground">http://localhost:3000</code>,
+              sign in, and place a trade.
+            </p>
+          </section>
+        </div>
+      </div>
     </div>
   )
 }

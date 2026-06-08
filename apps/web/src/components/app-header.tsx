@@ -24,7 +24,7 @@ const NAV_LINKS = [
   { href: '/app', label: 'Terminal' },
   { href: '/app/history', label: 'History' },
   { href: '/app/developer', label: 'Developer' },
-  { href: '/app/guide', label: 'Guide' },
+  { href: '/app/guide', label: 'How it works' },
 ] as const
 
 export interface AppHeaderProps {
