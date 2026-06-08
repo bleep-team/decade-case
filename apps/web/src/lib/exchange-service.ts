@@ -10,6 +10,7 @@ import {
   type Database,
 } from '@decade/db'
 import { buildOrderBook, midpoint, movingAverage } from '@decade/matching-engine'
+import type { OrderBookSnapshot } from '@decade/types'
 import { hasBuyingPowerFor, inngest } from '@decade/exchange-runtime'
 import type { SubmitOrderBody } from '@/lib/validation'
 
@@ -110,7 +111,11 @@ export async function getOrder(db: Database, orderId: string): Promise<OrderView
 }
 
 /** Top of the book (best bids/asks) for a symbol, to `depth` levels per side. */
-export async function getOrderBook(db: Database, symbol: string, depth = 10) {
+export async function getOrderBook(
+  db: Database,
+  symbol: string,
+  depth = 10,
+): Promise<OrderBookSnapshot> {
   const rows = await db
     .select()
     .from(orders)
