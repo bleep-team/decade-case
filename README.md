@@ -58,18 +58,24 @@ docs/                       # Architecture, ADRs, runbooks — see docs/README.m
 
 ### Run the whole stack with Docker (reproducible)
 
+One command brings up Postgres, runs migrations + seeds reference stocks, and
+starts the web app and Inngest dev server. First free ports **3000**, **5432**,
+and **8288** (stop any local `pnpm dev` / Inngest server), then:
+
 ```bash
+# Working auth needs real Clerk keys. They are inlined into the client bundle at
+# BUILD time, so they must be present during the build (hence --build) — and you
+# must re-run with --build whenever they change. Source them from apps/web/.env:
+export $(grep -E '^(NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY|CLERK_SECRET_KEY)=' apps/web/.env | xargs)
 docker compose up --build
+
 # app:          http://localhost:3000
 # Inngest dev:  http://localhost:8288
 ```
 
-This brings up Postgres, runs migrations + seeds reference stocks, starts the web
-app, and starts the Inngest dev server. Provide real Clerk keys for working auth:
-
-```bash
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_... CLERK_SECRET_KEY=sk_... docker compose up --build
-```
+Without real Clerk keys the stack still builds and boots on placeholders — you
+just can't sign in. Tear it down with `docker compose down` (add `-v` to also
+drop the Postgres volume).
 
 ### Run locally with pnpm
 
