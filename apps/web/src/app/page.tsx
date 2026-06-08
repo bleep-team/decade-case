@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { Button } from '@decade/ui/components/button'
 import { cn } from '@decade/ui/lib/utils'
+import { REPO_URL } from '@/lib/site'
 import { Wordmark } from '@/components/wordmark'
 import { Reveal } from '@/components/landing/reveal'
 import { SmoothScroll } from '@/components/landing/smooth-scroll'
@@ -9,7 +10,7 @@ import { EtheralShadow } from '@/components/landing/etheral-shadow'
 import { McpMock } from '@/components/landing/mcp-mock'
 import { PlatformCards } from '@/components/landing/platform-cards'
 
-const GITHUB_URL = 'https://github.com/bleep-team/decade-case'
+const GITHUB_URL = REPO_URL
 
 export default function LandingPage() {
   return (

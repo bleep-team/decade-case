@@ -10,6 +10,7 @@
 ## Decisions & operations
 
 - [`adr/`](adr/README.md) — Architecture Decision Records (why the key choices were made)
+- [`operations/ci-cd-pipeline.md`](operations/ci-cd-pipeline.md) — how code goes from commit to production
 - [`runbooks/deploy.md`](runbooks/deploy.md) — deploy to production (Vercel + Neon + Clerk + Inngest)
 - [`../UBIQUITOUS_LANGUAGE.md`](../UBIQUITOUS_LANGUAGE.md) — canonical domain terms
 

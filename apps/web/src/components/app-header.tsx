@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { RotateCcw } from 'lucide-react'
+import { Github, RotateCcw } from 'lucide-react'
 import { UserButton } from '@clerk/nextjs'
 import { Button } from '@decade/ui/components/button'
 import {
@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from '@decade/ui/components/alert-dialog'
 import { cn } from '@decade/ui/lib/utils'
+import { REPO_URL } from '@/lib/site'
 import { Wordmark } from './wordmark'
 
 /** The app's top-level pages, exposed as header navigation. */
@@ -24,6 +25,7 @@ const NAV_LINKS = [
   { href: '/app', label: 'Terminal' },
   { href: '/app/history', label: 'History' },
   { href: '/app/developer', label: 'Developer' },
+  { href: '/app/guide', label: 'How it works' },
 ] as const
 
 export interface AppHeaderProps {
@@ -91,6 +93,15 @@ export function AppHeader({ onReset = defaultReset }: AppHeaderProps) {
       </nav>
 
       <div className="flex items-center justify-end gap-3">
+        <a
+          href={REPO_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="View source on GitHub"
+          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <Github className="size-4" aria-hidden="true" />
+        </a>
         <Button
           type="button"
           size="sm"
