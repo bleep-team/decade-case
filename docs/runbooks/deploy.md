@@ -61,9 +61,13 @@ Migrations run from `.github/workflows/deploy.yml` on push to `main` when
 
 - **Reference stocks** are seeded by migration `0001_seed_stocks.sql`, so any
   migrated database (every Neon branch) is tradeable.
-- **Demo brokers** (`…a1` seller / `…b2` buyer) are seeded by `db:seed-dev`, which
-  the deploy workflow runs after migrating. This is a stopgap until brokers are
-  provisioned from Clerk sign-ups.
+- **Reference prices + house liquidity** are seeded by `db:seed`, which the deploy
+  workflow runs after migrating: stock reference prices and the `is_mock` house
+  brokers the market-maker quotes from (without them a deployed user gets no
+  fills). It is idempotent.
+- **Demo brokers** (`…a1` seller / `…b2` buyer) come from `db:seed-dev`, a
+  local-only convenience that is **not** run in production — real brokers are
+  auto-provisioned from Clerk sign-ups.
 
 > Each Neon **branch** (production vs development, both under the `decade-case`
 > project) is an independent database, so each is seeded on its own first migrate.
@@ -73,7 +77,7 @@ Migrations run from `.github/workflows/deploy.yml` on push to `main` when
 Install the **Inngest Vercel integration** and link the project. It sets
 `INNGEST_EVENT_KEY` + `INNGEST_SIGNING_KEY` in Vercel and auto-syncs the app at
 `https://decade.usebleep.com/api/inngest` on each deploy, registering the
-`match-order`, `expire-orders`, and `deliver-webhook` functions.
+`match-order`, `expire-orders`, `deliver-webhook`, and market-maker functions.
 
 > **Sync troubleshooting.** In production the app sends events to Inngest Cloud,
 > which only runs functions for a **registered** app. If orders submit but never
