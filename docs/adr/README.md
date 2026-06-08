@@ -8,3 +8,4 @@ Short records of the significant choices and their rationale.
 - [0004 — Inngest for jobs and per-symbol matching](0004-inngest-jobs.md)
 - [0005 — A pure matching engine](0005-matching-engine.md)
 - [0006 — shadcn/ui in the shared UI package](0006-shadcn-shared-ui.md)
+- [0007 — MCP authenticated by Clerk OAuth, with an API-key bridge](0007-mcp-clerk-oauth.md)

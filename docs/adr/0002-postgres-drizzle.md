@@ -1,6 +1,7 @@
 # 0002 — Postgres + Drizzle via node-postgres
 
 **Status:** Accepted
+**Date:** 2026-06-05
 
 ## Context
 

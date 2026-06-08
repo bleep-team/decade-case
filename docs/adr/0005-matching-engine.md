@@ -1,6 +1,7 @@
 # 0005 — A pure matching engine
 
 **Status:** Accepted
+**Date:** 2026-06-05
 
 ## Context
 
@@ -27,3 +28,9 @@ price); for a market taker it falls back to the resting order's price.
   priority, market orders, symbol/side isolation, input immutability).
 - The runtime (`persistMatchResult`) owns all side effects, keeping the boundary
   between "decide" and "persist" clean.
+- Money-leg enforcement lives in the **runtime boundary**, not the engine. The
+  buying-power check (rejecting an underfunded limit buy) is
+  `packages/exchange-runtime/src/buying-power.ts`, applied in the shared
+  `exchange-service` at submission time before an order ever reaches the book.
+  Keeping cash checks out of the pure engine reinforces the purity boundary: the
+  engine decides _crossing_, the runtime owns _funding_ and all balance writes.

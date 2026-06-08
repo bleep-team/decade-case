@@ -24,13 +24,23 @@ components and the shared Tailwind theme.
   (`./components/*`, `./hooks/*`, `./lib/*`, `./styles/globals.css`), so an app
   imports only what it uses: `import { Button } from '@decade/ui/components/button'`.
 - Design tokens live CSS-first in `packages/ui/src/styles/globals.css` via
-  Tailwind v4 `@theme`: a raw brand layer (`--ink`, `--paper`, `--silver`) plus
-  semantic shadcn aliases (`--background`, `--foreground`, `--primary`, `--ring`,
-  …). Apps import that one stylesheet and inherit everything.
-- **Single dark theme, no light mode.** The brand is a minimalist, luxurious
-  black / white / silver palette; the dark tokens are authored once and the app
-  root sets `<html class="dark">` with `color-scheme: dark`. There is no
-  white-label or light-mode support in v1.
+  Tailwind v4 `@theme`: a raw neutral brand layer (`--ink`, `--paper`,
+  `--silver`), a single warm accent (`--brand`, `#f0a868`), market-data tokens
+  (`--gain`/`--loss`), and the semantic shadcn aliases (`--background`,
+  `--foreground`, `--primary`, `--ring`, …). Apps import that one stylesheet and
+  inherit everything.
+- **Single dark theme, no light mode.** The brand is a monochrome dark palette —
+  near-black ink to near-white paper, graded silver — lifted by the warm orange
+  `--brand` accent used sparingly (active nav, key identifiers). The dark tokens
+  are authored once and the app root sets `<html class="dark">` with
+  `color-scheme: dark`. There is no white-label or light-mode support in v1.
+- **One typeface: Inter.** `apps/web/src/app/layout.tsx` loads only Inter (sans;
+  numbers use the Tailwind `font-mono` stack). The editorial serif (Playfair) was
+  dropped — it sat on a single heading and read as an inconsistent font.
+- The embedded Clerk components are brand-aligned via the `appearance` prop in
+  `layout.tsx`: the `dark` base theme as a backstop, with `variables` pinned to
+  the same `@decade/ui` design tokens, so the auth UI tracks the palette with no
+  second source of truth.
 
 ## Consequences
 
