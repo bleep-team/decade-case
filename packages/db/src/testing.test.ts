@@ -3,8 +3,9 @@ import { sql } from 'drizzle-orm'
 import { brokers } from './schema/tables.js'
 import { createTestDb, type TestDb } from './testing.js'
 
-// This whole suite runs with NO external Postgres and NO TEST_DATABASE_URL — the
-// database lives in-process (pglite). The migrations under ./drizzle are applied
+// This whole suite runs entirely in-process (pglite): it needs no external
+// Postgres and ignores TEST_DATABASE_URL (which CI sets for the sibling
+// exchange-runtime integration test). The migrations under ./drizzle are applied
 // on boot, so every table/column the app queries is present.
 describe('createTestDb (in-process pglite harness)', () => {
   let harness: TestDb
@@ -21,9 +22,7 @@ describe('createTestDb (in-process pglite harness)', () => {
     await harness.reset()
   })
 
-  it('boots without TEST_DATABASE_URL and inserts and reads back a broker', async () => {
-    expect(process.env['TEST_DATABASE_URL']).toBeUndefined()
-
+  it('boots in-process (pglite) and inserts and reads back a broker', async () => {
     await harness.db
       .insert(brokers)
       .values({ clerkUserId: 'user_smoke', name: 'Smoke Broker', cashBalanceCents: 100 })
