@@ -67,7 +67,8 @@ export function IntegrationCard({ baseUrl }: IntegrationCardProps) {
           <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
             Authorization: Bearer
           </code>{' '}
-          header.
+          header. The MCP endpoint also works as a native connector — add it by URL and sign in with
+          Clerk to act as your broker.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

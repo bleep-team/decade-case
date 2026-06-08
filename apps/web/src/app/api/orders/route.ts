@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { desc, eq } from 'drizzle-orm'
 import { orders } from '@decade/db'
-import { getDb, hasBuyingPowerFor, inngest } from '@decade/exchange-runtime'
+import { getDb } from '@decade/exchange-runtime'
 import { resolveActingBrokerOr401 } from '@/lib/broker-identity'
+import { createOrder } from '@/lib/exchange-service'
 import { parsePagination } from '@/lib/pagination'
 import { submitOrderSchema } from '@/lib/validation'
 
@@ -63,51 +64,8 @@ export async function POST(request: Request) {
     return broker
   }
 
-  const body = parsed.data
-  const db = getDb()
-
-  const limitPriceCents = body.type === 'market' ? null : (body.limitPrice ?? null)
-  // Buying-power check: a limit buy that would commit more cash than the broker
-  // has free is recorded `rejected` and never reaches the matcher. The matcher's
-  // execution-time `truncate` remains the backstop for market buys and races.
-  const affordable = await hasBuyingPowerFor(db, broker, {
-    side: body.side,
-    type: body.type,
-    limitPriceCents,
-    quantity: body.quantity,
-  })
-
-  const [inserted] = await db
-    .insert(orders)
-    .values({
-      brokerId: broker.id,
-      ownerDocument: body.ownerDocument,
-      symbol: body.symbol,
-      side: body.side,
-      type: body.type,
-      limitPriceCents,
-      quantity: body.quantity,
-      remaining: body.quantity,
-      status: affordable ? 'open' : 'rejected',
-      expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
-    })
-    .returning({ id: orders.id })
-
-  if (!inserted) {
-    return NextResponse.json({ error: 'insert_failed' }, { status: 500 })
-  }
-
-  // Hand off to the matcher; it serializes per symbol so the book stays
-  // consistent. A rejected order never enters the book, so it isn't emitted.
-  if (affordable) {
-    await inngest.send({
-      name: 'order/submitted',
-      data: { orderId: inserted.id, symbol: body.symbol },
-    })
-  }
-
-  return NextResponse.json(
-    { orderId: inserted.id, status: affordable ? 'open' : 'rejected' },
-    { status: 201 },
-  )
+  // Insert + buying-power check + matcher hand-off live in the shared service,
+  // so this route and the MCP `submit_order` tool behave identically.
+  const { orderId, status } = await createOrder(getDb(), broker, parsed.data)
+  return NextResponse.json({ orderId, status }, { status: 201 })
 }

@@ -4,8 +4,9 @@ import { eq } from 'drizzle-orm'
 import { resolveOrCreateBroker } from '@decade/auth'
 import { requireUserId } from '@decade/auth/server'
 import { orders } from '@decade/db'
-import { getDb, hasBuyingPowerFor, inngest } from '@decade/exchange-runtime'
+import { getDb, inngest } from '@decade/exchange-runtime'
 import type { OrderTicketPayload } from '@/components/terminal/order-ticket'
+import { createOrder } from '@/lib/exchange-service'
 import { submitOrderSchema } from '@/lib/validation'
 
 /**
@@ -29,44 +30,10 @@ export async function submitOrderAction(payload: OrderTicketPayload): Promise<{ 
   const db = getDb()
   const broker = await resolveOrCreateBroker(db, userId)
 
-  const limitPriceCents = parsed.type === 'market' ? null : (parsed.limitPrice ?? null)
-  // A limit buy beyond the broker's free cash is recorded `rejected` and never
-  // emitted to the matcher, mirroring `POST /api/orders`.
-  const affordable = await hasBuyingPowerFor(db, broker, {
-    side: parsed.side,
-    type: parsed.type,
-    limitPriceCents,
-    quantity: parsed.quantity,
-  })
-
-  const [inserted] = await db
-    .insert(orders)
-    .values({
-      brokerId: broker.id,
-      ownerDocument: parsed.ownerDocument,
-      symbol: parsed.symbol,
-      side: parsed.side,
-      type: parsed.type,
-      limitPriceCents,
-      quantity: parsed.quantity,
-      remaining: parsed.quantity,
-      status: affordable ? 'open' : 'rejected',
-      expiresAt: parsed.expiresAt ? new Date(parsed.expiresAt) : null,
-    })
-    .returning({ id: orders.id })
-
-  if (!inserted) {
-    throw new Error('order insert failed')
-  }
-
-  if (affordable) {
-    await inngest.send({
-      name: 'order/submitted',
-      data: { orderId: inserted.id, symbol: parsed.symbol },
-    })
-  }
-
-  return { orderId: inserted.id }
+  // Insert + buying-power check + matcher hand-off live in the shared service,
+  // mirroring `POST /api/orders` exactly.
+  const { orderId } = await createOrder(db, broker, parsed)
+  return { orderId }
 }
 
 /**
