@@ -26,5 +26,21 @@ describe('POST /api/mcp — auth gate', () => {
     const challenge = response.headers.get('www-authenticate') ?? ''
     expect(challenge.toLowerCase()).toContain('bearer')
     expect(challenge).toContain('/.well-known/oauth-protected-resource/mcp')
+    // A cross-origin MCP client must be able to READ that challenge, so CORS has
+    // to expose WWW-Authenticate; without it the connect hangs at "Checking
+    // connection" before OAuth can begin.
+    expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    expect(response.headers.get('access-control-expose-headers')).toContain('WWW-Authenticate')
+  })
+
+  it('answers the CORS preflight (OPTIONS) for the cross-origin client', async () => {
+    const { OPTIONS } = await import('./route.js')
+    const response = OPTIONS()
+    expect(response.status).toBe(204)
+    expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    expect(response.headers.get('access-control-allow-methods')).toContain('POST')
+    expect(response.headers.get('access-control-allow-headers')?.toLowerCase()).toContain(
+      'authorization',
+    )
   })
 })

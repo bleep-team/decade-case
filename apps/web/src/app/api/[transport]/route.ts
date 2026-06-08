@@ -47,4 +47,36 @@ const authHandler = withMcpAuth(
   },
 )
 
-export { authHandler as GET, authHandler as POST }
+// An MCP client (Claude Desktop, claude.ai) calls this endpoint cross-origin, so
+// the transport's responses need CORS — and critically `WWW-Authenticate` must be
+// exposed, or the client cannot read the 401 OAuth pointer and the connect hangs
+// at "Checking connection". `Mcp-Session-Id` is exposed so the client can resume
+// a streamable-HTTP session. A bearer (not a cookie) authenticates, so `*` origin
+// is safe — no credentialed requests are involved.
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers':
+    'Content-Type, Authorization, Mcp-Session-Id, Mcp-Protocol-Version, Accept',
+  'Access-Control-Expose-Headers': 'WWW-Authenticate, Mcp-Session-Id',
+  'Access-Control-Max-Age': '86400',
+}
+
+function withCors(response: Response): Response {
+  for (const [key, value] of Object.entries(CORS_HEADERS)) {
+    response.headers.set(key, value)
+  }
+  return response
+}
+
+async function handleRequest(request: Request): Promise<Response> {
+  return withCors(await authHandler(request))
+}
+
+export const GET = handleRequest
+export const POST = handleRequest
+
+/** CORS preflight for the cross-origin MCP client. */
+export function OPTIONS(): Response {
+  return new Response(null, { status: 204, headers: CORS_HEADERS })
+}
