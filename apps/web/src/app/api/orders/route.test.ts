@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { orders } from '@decade/db'
+import { brokers, orders } from '@decade/db'
 import { createTestDb, type TestDb } from '@decade/db/testing'
 
 let harness: TestDb
@@ -48,33 +48,12 @@ describe('POST /api/orders', () => {
     )
   }
 
-  it('rejects a body brokerId that is not the authenticated broker', async () => {
-    // A different, real broker the caller tries to act as via the body.
+  it('persists the order under the authenticated broker, ignoring any brokerId in the body', async () => {
+    // A different, real broker the attacker tries to spoof via the body.
     const victim = await harness.seedBroker({ clerkUserId: 'user_victim', name: 'Victim' })
 
     const response = await postOrder({
-      brokerId: victim.id, // not the session broker → must be rejected
-      ownerDocument: 'doc_1',
-      symbol: 'AAPL',
-      side: 'bid',
-      type: 'limit',
-      limitPrice: 1000,
-      quantity: 10,
-    })
-
-    expect(response.status).toBe(403)
-    expect((await response.json()).error).toBe('broker_mismatch')
-    // Nothing was inserted or matched.
-    expect(await harness.db.select().from(orders)).toHaveLength(0)
-    expect(sendSpy).not.toHaveBeenCalled()
-  })
-
-  it('persists the order under the authenticated broker when the body brokerId matches', async () => {
-    // Pre-provision the session broker so we can send its own id in the body.
-    const session = await harness.seedBroker({ clerkUserId: 'user_route_test', name: 'Me' })
-
-    const response = await postOrder({
-      brokerId: session.id, // matches the authenticated identity
+      brokerId: victim.id, // should be ignored
       ownerDocument: 'doc_1',
       symbol: 'AAPL',
       side: 'bid',
@@ -86,8 +65,16 @@ describe('POST /api/orders', () => {
     expect(response.status).toBe(201)
     const { orderId } = await response.json()
 
+    // The session broker was auto-provisioned and owns the order.
+    const [sessionBroker] = await harness.db
+      .select()
+      .from(brokers)
+      .where(eq(brokers.clerkUserId, 'user_route_test'))
+    expect(sessionBroker).toBeDefined()
+
     const [order] = await harness.db.select().from(orders).where(eq(orders.id, orderId))
-    expect(order?.brokerId).toBe(session.id)
+    expect(order?.brokerId).toBe(sessionBroker!.id)
+    expect(order?.brokerId).not.toBe(victim.id)
 
     // The matcher was notified for the right symbol.
     expect(sendSpy).toHaveBeenCalledWith(
