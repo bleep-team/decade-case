@@ -101,4 +101,35 @@ describe('runMarketMaker (pglite harness)', () => {
     expect(result.submittedOrderIds).toHaveLength(0)
     expect(await bookOrders('AAPL')).toHaveLength(0)
   })
+
+  it('flags no crossing quotes for a fresh ladder on a clean book', async () => {
+    const result = await runMarketMaker(harness.db, 'AAPL', DEFAULT_LADDER, NOW)
+    expect(result.crossingOrderIds).toHaveLength(0)
+  })
+
+  it('flags a fresh quote that crosses a resting order', async () => {
+    // A user's resting bid sits well above where the ladder will post its asks.
+    const user = await harness.seedBroker({ name: 'User', cashBalanceCents: 100_000_000 })
+    await harness.db.insert(orders).values({
+      brokerId: user.id,
+      ownerDocument: 'doc',
+      symbol: 'AAPL',
+      side: 'bid',
+      type: 'limit',
+      limitPriceCents: 10_100,
+      quantity: 10,
+      remaining: 10,
+      status: 'open',
+    })
+
+    const result = await runMarketMaker(harness.db, 'AAPL', DEFAULT_LADDER, NOW)
+
+    expect(result.crossingOrderIds.length).toBeGreaterThan(0)
+    const flagged = await harness.db
+      .select()
+      .from(orders)
+      .where(inArray(orders.id, result.crossingOrderIds))
+    // The flagged quotes are the asks that cross the high resting bid.
+    expect(flagged.every((row) => row.side === 'ask')).toBe(true)
+  })
 })

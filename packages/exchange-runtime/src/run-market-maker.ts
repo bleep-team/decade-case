@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNotNull, max, min } from 'drizzle-orm'
 import { brokers, orders, stocks, type Broker, type Database, type NewOrder } from '@decade/db'
 import { generateQuoteLadder, stepReference, type LadderConfig } from './market-maker.js'
 import { runCancel } from './run-cancel.js'
@@ -27,6 +27,13 @@ export interface MarketMakerResult {
   cancelledOrderIds: string[]
   /** Fresh mock quotes inserted as `open` rows, to be matched via `order/submitted`. */
   submittedOrderIds: string[]
+  /**
+   * The subset of freshly posted quotes that already cross a resting order on
+   * the far side (a user's stale order, typically). The caller submits these
+   * through the real `match-order` writer so the book never displays a cross;
+   * normally empty, since a fresh ladder is non-crossing on its own.
+   */
+  crossingOrderIds: string[]
 }
 
 /**
@@ -49,7 +56,12 @@ export async function runMarketMaker(
   now: Date = new Date(),
   ttlSeconds: number = DEFAULT_TTL_SECONDS,
 ): Promise<MarketMakerResult> {
-  const empty: MarketMakerResult = { symbol, cancelledOrderIds: [], submittedOrderIds: [] }
+  const empty: MarketMakerResult = {
+    symbol,
+    cancelledOrderIds: [],
+    submittedOrderIds: [],
+    crossingOrderIds: [],
+  }
 
   const [stock] = await db.select().from(stocks).where(eq(stocks.symbol, symbol))
   const reference = stock?.referencePriceCents
@@ -119,7 +131,54 @@ export async function runMarketMaker(
   ]
   const inserted = await db.insert(orders).values(newOrders).returning({ id: orders.id })
 
-  return { symbol, cancelledOrderIds, submittedOrderIds: inserted.map((row) => row.id) }
+  // A fresh ladder is non-crossing on its own, but it may cross a *resting*
+  // order on the far side (e.g. a user's stale limit). Flag those quotes so the
+  // caller can submit them through the real per-symbol matcher and clear the
+  // cross — leaving a clean book instead of a frozen, crossed one.
+  const crossingOrderIds = await findCrossingQuotes(db, symbol, inserted, newOrders)
+
+  return {
+    symbol,
+    cancelledOrderIds,
+    submittedOrderIds: inserted.map((row) => row.id),
+    crossingOrderIds,
+  }
+}
+
+/**
+ * Of the just-posted quotes, the ones whose price already crosses the best
+ * resting price on the opposite side of the live book: a new bid at or above the
+ * best ask, or a new ask at or below the best bid.
+ */
+async function findCrossingQuotes(
+  db: Database,
+  symbol: string,
+  inserted: ReadonlyArray<{ id: string }>,
+  newOrders: ReadonlyArray<NewOrder>,
+): Promise<string[]> {
+  const resting = inArray(orders.status, ['open', 'partially_filled'])
+  const [askAgg] = await db
+    .select({ best: min(orders.limitPriceCents) })
+    .from(orders)
+    .where(and(eq(orders.symbol, symbol), eq(orders.side, 'ask'), resting))
+  const [bidAgg] = await db
+    .select({ best: max(orders.limitPriceCents) })
+    .from(orders)
+    .where(and(eq(orders.symbol, symbol), eq(orders.side, 'bid'), resting))
+  const bestAsk = askAgg?.best != null ? Number(askAgg.best) : null
+  const bestBid = bidAgg?.best != null ? Number(bidAgg.best) : null
+
+  const crossing: string[] = []
+  inserted.forEach((row, i) => {
+    const order = newOrders[i]
+    if (!order || order.limitPriceCents == null) return
+    if (order.side === 'bid' && bestAsk !== null && order.limitPriceCents >= bestAsk) {
+      crossing.push(row.id)
+    } else if (order.side === 'ask' && bestBid !== null && order.limitPriceCents <= bestBid) {
+      crossing.push(row.id)
+    }
+  })
+  return crossing
 }
 
 /** Symbols with a reference price set — the ones the ambient cron quotes around. */
