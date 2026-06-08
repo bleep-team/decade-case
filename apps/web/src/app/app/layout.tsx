@@ -1,7 +1,17 @@
 import type { ReactNode } from 'react'
+import { headers } from 'next/headers'
 import { AppHeader } from '@/components/app-header'
+import { MobileBlock } from '@/components/mobile-block'
+import { isMobileDevice } from '@/server/mobile-gate'
 
-export default function AppLayout({ children }: { children: ReactNode }) {
+export default async function AppLayout({ children }: { children: ReactNode }) {
+  // The terminal is desktop-first; phones get an interstitial instead of the
+  // app shell. Runs after Clerk auth (middleware guards /app), so a blocked
+  // visitor is already signed in. Fails open — see `isMobileDevice`.
+  if (await isMobileDevice(headers)) {
+    return <MobileBlock />
+  }
+
   return (
     <div className="flex h-dvh flex-col">
       <a
