@@ -23,6 +23,7 @@ import { cn } from '@decade/ui/lib/utils'
 import { CodeBlock } from './code-block'
 import { InfoTip } from '@/components/terminal/info-tip'
 import { formatTime } from '@/lib/format-time'
+import { useCopy } from '@/lib/use-copy'
 
 /** One recent webhook delivery attempt, as the developer page lists it. */
 export interface DeliveryRow {
@@ -82,7 +83,7 @@ export function WebhookCard({
   const [url, setUrl] = useState(defaultUrl)
   const [secret, setSecret] = useState(defaultSecret)
   const [active, setActive] = useState(defaultActive)
-  const [copiedSecret, setCopiedSecret] = useState(false)
+  const { copied: copiedSecret, copy: copySecret } = useCopy()
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
   // "Active" only means anything with somewhere to deliver — there is nothing to
@@ -90,11 +91,6 @@ export function WebhookCard({
   // off until then, and a save never reports active without a URL.
   const hasUrl = url.trim().length > 0
   const effectiveActive = active && hasUrl
-
-  const handleCopySecret = async () => {
-    await navigator.clipboard?.writeText(secret)
-    setCopiedSecret(true)
-  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -146,7 +142,7 @@ export function WebhookCard({
                 variant="outline"
                 size="icon"
                 aria-label="Copy to clipboard"
-                onClick={() => void handleCopySecret()}
+                onClick={() => void copySecret(secret)}
               >
                 {copiedSecret ? (
                   <Check className="size-4" aria-hidden="true" />
