@@ -52,6 +52,9 @@ importers:
       '@clerk/nextjs':
         specifier: ^6.0.0
         version: 6.39.5(next@15.5.19(@opentelemetry/api@1.9.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@clerk/themes':
+        specifier: ^2.4.57
+        version: 2.4.57(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@decade/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -803,6 +806,13 @@ packages:
         optional: true
       react-dom:
         optional: true
+
+  '@clerk/themes@2.4.57':
+    resolution:
+      {
+        integrity: sha512-Nb3bO79rMTU/MPVTC/dde6LG27/IgOMKIYi5KSvAmO4ZUHlj0OWufu6CMvz5OYVZ0YdyMnTBU2aPGRUiRzO+2w==,
+      }
+    engines: { node: '>=18.17.0' }
 
   '@clerk/types@4.101.25':
     resolution:
@@ -10125,6 +10135,14 @@ snapshots:
     optionalDependencies:
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
+
+  '@clerk/themes@2.4.57(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+    dependencies:
+      '@clerk/shared': 3.47.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - react
+      - react-dom
 
   '@clerk/types@4.101.25(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
