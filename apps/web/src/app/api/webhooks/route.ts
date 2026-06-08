@@ -15,6 +15,7 @@ function generateSecret(): string {
 interface RegisterBody {
   url?: unknown
   secret?: unknown
+  active?: unknown
 }
 
 /**
@@ -41,6 +42,8 @@ export async function POST(request: Request) {
   if (!url) {
     return NextResponse.json({ error: 'url_required' }, { status: 400 })
   }
+  // Default to active; a caller can pause deliveries by sending `active: false`.
+  const active = typeof body.active === 'boolean' ? body.active : true
 
   const db = getDb()
   const [existing] = await db
@@ -58,10 +61,13 @@ export async function POST(request: Request) {
   const [endpoint] = existing
     ? await db
         .update(webhookEndpoints)
-        .set({ url, secret, active: true })
+        .set({ url, secret, active })
         .where(eq(webhookEndpoints.id, existing.id))
         .returning()
-    : await db.insert(webhookEndpoints).values({ brokerId: broker.id, url, secret }).returning()
+    : await db
+        .insert(webhookEndpoints)
+        .values({ brokerId: broker.id, url, secret, active })
+        .returning()
 
   return NextResponse.json({
     id: endpoint!.id,

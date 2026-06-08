@@ -50,12 +50,12 @@ export async function saveWebhookAction(payload: WebhookPayload): Promise<{ secr
   const [endpoint] = existing
     ? await db
         .update(webhookEndpoints)
-        .set({ url, secret, active: true })
+        .set({ url, secret, active: payload.active })
         .where(eq(webhookEndpoints.id, existing.id))
         .returning({ secret: webhookEndpoints.secret })
     : await db
         .insert(webhookEndpoints)
-        .values({ brokerId: broker.id, url, secret })
+        .values({ brokerId: broker.id, url, secret, active: payload.active })
         .returning({ secret: webhookEndpoints.secret })
 
   return { secret: endpoint!.secret }

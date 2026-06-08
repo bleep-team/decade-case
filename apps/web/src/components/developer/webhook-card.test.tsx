@@ -12,6 +12,7 @@ const deliveries: DeliveryRow[] = [
     status: 'delivered',
     attempts: 1,
     createdAt: '2026-06-06T12:00:00.000Z',
+    payload: '{\n  "event": "trade.executed"\n}',
   },
 ]
 
@@ -30,9 +31,7 @@ describe('WebhookCard', () => {
   })
 
   it('renders the deliveries table from data', () => {
-    render(
-      <WebhookCard defaultUrl="" defaultSecret="" deliveries={deliveries} onSave={vi.fn()} />,
-    )
+    render(<WebhookCard defaultUrl="" defaultSecret="" deliveries={deliveries} onSave={vi.fn()} />)
     expect(screen.getByText('trade-1')).not.toBeNull()
     expect(screen.getByText('delivered')).not.toBeNull()
   })
@@ -51,7 +50,11 @@ describe('WebhookCard', () => {
       target: { value: 'https://new.test/hook' },
     })
     fireEvent.click(screen.getByRole('button', { name: /save/i }))
-    expect(onSave).toHaveBeenCalledWith({ url: 'https://new.test/hook', secret: 'whsec_abc' })
+    expect(onSave).toHaveBeenCalledWith({
+      url: 'https://new.test/hook',
+      secret: 'whsec_abc',
+      active: true,
+    })
   })
 
   it('shows an empty state with no deliveries', () => {

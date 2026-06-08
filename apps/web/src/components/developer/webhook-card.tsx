@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, ChevronDown, Copy, Save } from 'lucide-react'
+import { Check, ChevronDown, Copy, Loader2, Save } from 'lucide-react'
 import { Badge } from '@decade/ui/components/badge'
 import { Button } from '@decade/ui/components/button'
+import { Switch } from '@decade/ui/components/switch'
 import {
   Card,
   CardContent,
@@ -19,14 +20,7 @@ import {
 import { Input } from '@decade/ui/components/input'
 import { Label } from '@decade/ui/components/label'
 import { CodeBlock } from './code-block'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@decade/ui/components/table'
+import { InfoTip } from '@/components/terminal/info-tip'
 import { formatTime } from '@/lib/format-time'
 
 /** One recent webhook delivery attempt, as the developer page lists it. */
@@ -37,17 +31,23 @@ export interface DeliveryRow {
   status: string
   attempts: number
   createdAt: string
+  /** The exact JSON body that was delivered, pretty-printed for the expanded row. */
+  payload: string
 }
 
 /** The webhook registration payload handed to the save action. */
 export interface WebhookPayload {
   url: string
   secret: string
+  /** When false, the endpoint is registered but deliveries are paused. */
+  active: boolean
 }
 
 export interface WebhookCardProps {
   defaultUrl: string
   defaultSecret: string
+  /** Whether the saved endpoint is currently active; defaults to on. */
+  defaultActive?: boolean
   deliveries: DeliveryRow[]
   /** Called with the form payload when the broker saves the endpoint. */
   onSave: (payload: WebhookPayload) => void | Promise<void>
@@ -71,19 +71,34 @@ const PAYLOAD_EXAMPLE = `{
  * attempts. Presentational — the save handler and delivery rows come in as props;
  * on submit it forms a {@link WebhookPayload} for `onSave`.
  */
-export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: WebhookCardProps) {
+export function WebhookCard({
+  defaultUrl,
+  defaultSecret,
+  defaultActive = true,
+  deliveries,
+  onSave,
+}: WebhookCardProps) {
   const [url, setUrl] = useState(defaultUrl)
   const [secret, setSecret] = useState(defaultSecret)
+  const [active, setActive] = useState(defaultActive)
   const [copiedSecret, setCopiedSecret] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
   const handleCopySecret = async () => {
     await navigator.clipboard?.writeText(secret)
     setCopiedSecret(true)
   }
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    void onSave({ url, secret })
+    setStatus('saving')
+    try {
+      await onSave({ url, secret, active })
+      setStatus('saved')
+      window.setTimeout(() => setStatus('idle'), 2500)
+    } catch {
+      setStatus('error')
+    }
   }
 
   return (
@@ -134,10 +149,38 @@ export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: W
               </Button>
             </div>
           </div>
-          <Button type="submit" size="sm">
-            <Save className="size-4" aria-hidden="true" />
-            Save webhook
-          </Button>
+          <div className="flex items-center gap-2">
+            <Switch id="webhook-active" checked={active} onCheckedChange={setActive} />
+            <Label htmlFor="webhook-active" className="text-sm">
+              Active
+            </Label>
+            <InfoTip label="More information">
+              When off, the endpoint stays saved but deliveries are paused, so a failing endpoint
+              stops retrying.
+            </InfoTip>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button type="submit" size="sm" disabled={status === 'saving'}>
+              {status === 'saving' ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Save className="size-4" aria-hidden="true" />
+              )}
+              {status === 'saving' ? 'Saving…' : 'Save webhook'}
+            </Button>
+            {status === 'saved' ? (
+              <span className="flex items-center gap-1 text-sm text-emerald-400" role="status">
+                <Check className="size-4" aria-hidden="true" />
+                Saved
+              </span>
+            ) : null}
+            {status === 'error' ? (
+              <span className="text-sm text-destructive" role="status">
+                Could not save. Try again.
+              </span>
+            ) : null}
+          </div>
         </form>
 
         <Collapsible className="space-y-3">
@@ -168,39 +211,48 @@ export function WebhookCard({ defaultUrl, defaultSecret, deliveries, onSave }: W
         </Collapsible>
 
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">Recent deliveries</h3>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Trade</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Attempts</TableHead>
-                <TableHead>When</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {deliveries.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-muted-foreground">
-                    No deliveries yet.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                deliveries.map((d) => (
-                  <TableRow key={d.id}>
-                    <TableCell className="font-mono text-xs">{d.tradeId}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{d.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">{d.attempts}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
+          <div className="space-y-0.5">
+            <h3 className="text-sm font-medium text-foreground">Recent deliveries</h3>
+            <p className="text-xs text-muted-foreground">
+              The 10 most recent delivery attempts, newest first. Expand a row to see the exact
+              payload delivered.
+            </p>
+          </div>
+          {deliveries.length === 0 ? (
+            <p className="rounded-md border border-border px-3 py-6 text-center text-sm text-muted-foreground">
+              No deliveries yet.
+            </p>
+          ) : (
+            <div className="divide-y divide-border overflow-hidden rounded-md border border-border">
+              {deliveries.map((d) => (
+                <Collapsible key={d.id}>
+                  <CollapsibleTrigger className="group flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+                    <ChevronDown
+                      className="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180"
+                      aria-hidden="true"
+                    />
+                    <code className="min-w-0 flex-1 truncate font-mono text-xs text-foreground">
+                      {d.tradeId}
+                    </code>
+                    <Badge variant="outline">{d.status}</Badge>
+                    <span className="hidden font-mono text-xs text-muted-foreground sm:inline">
+                      {d.attempts} {d.attempts === 1 ? 'attempt' : 'attempts'}
+                    </span>
+                    <span className="hidden font-mono text-xs text-muted-foreground md:inline">
                       {formatTime(d.createdAt)}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                    </span>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-3 pb-3">
+                    <CodeBlock
+                      label="Delivered payload"
+                      code={d.payload}
+                      ariaLabel={`Payload for trade ${d.tradeId}`}
+                    />
+                  </CollapsibleContent>
+                </Collapsible>
+              ))}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

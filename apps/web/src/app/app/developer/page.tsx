@@ -1,8 +1,8 @@
 import { desc, eq } from 'drizzle-orm'
 import { resolveOrCreateBroker } from '@decade/auth'
 import { requireUserId } from '@decade/auth/server'
-import { webhookDeliveries, webhookEndpoints } from '@decade/db'
-import { getDb } from '@decade/exchange-runtime'
+import { trades, webhookDeliveries, webhookEndpoints } from '@decade/db'
+import { buildWebhookPayload, getDb } from '@decade/exchange-runtime'
 import { Developer } from '@/components/developer/developer'
 import type { DeliveryRow } from '@/components/developer/webhook-card'
 
@@ -31,11 +31,24 @@ export default async function DeveloperPage() {
 
   const deliveryRows = endpoint
     ? await db
-        .select()
+        .select({
+          id: webhookDeliveries.id,
+          tradeId: webhookDeliveries.tradeId,
+          status: webhookDeliveries.status,
+          attempts: webhookDeliveries.attempts,
+          createdAt: webhookDeliveries.createdAt,
+          tradeSymbol: trades.symbol,
+          tradePriceCents: trades.priceCents,
+          tradeQuantity: trades.quantity,
+          tradeBidOrderId: trades.bidOrderId,
+          tradeAskOrderId: trades.askOrderId,
+          tradeExecutedAt: trades.executedAt,
+        })
         .from(webhookDeliveries)
+        .innerJoin(trades, eq(webhookDeliveries.tradeId, trades.id))
         .where(eq(webhookDeliveries.endpointId, endpoint.id))
         .orderBy(desc(webhookDeliveries.createdAt))
-        .limit(25)
+        .limit(10)
     : []
 
   const deliveries: DeliveryRow[] = deliveryRows.map((row) => ({
@@ -45,6 +58,20 @@ export default async function DeveloperPage() {
     status: row.status,
     attempts: row.attempts,
     createdAt: row.createdAt.toISOString(),
+    // The exact body that was delivered, reconstructed from the (immutable) trade.
+    payload: JSON.stringify(
+      buildWebhookPayload({
+        id: row.tradeId,
+        symbol: row.tradeSymbol,
+        priceCents: row.tradePriceCents,
+        quantity: row.tradeQuantity,
+        bidOrderId: row.tradeBidOrderId,
+        askOrderId: row.tradeAskOrderId,
+        executedAt: row.tradeExecutedAt.toISOString(),
+      }),
+      null,
+      2,
+    ),
   }))
 
   return (
@@ -53,6 +80,7 @@ export default async function DeveloperPage() {
       apiKey={null}
       defaultWebhookUrl={endpoint?.url ?? ''}
       defaultWebhookSecret={endpoint?.secret ?? ''}
+      defaultWebhookActive={endpoint?.active ?? true}
       deliveries={deliveries}
     />
   )

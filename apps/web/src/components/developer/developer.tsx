@@ -17,6 +17,8 @@ export interface DeveloperProps {
   defaultWebhookUrl: string
   /** The broker's saved signing secret, pre-filling the form. */
   defaultWebhookSecret: string
+  /** Whether the saved endpoint is active; defaults to on for a new endpoint. */
+  defaultWebhookActive?: boolean
   /** Recent delivery attempts for the broker's endpoint. */
   deliveries: DeliveryRow[]
   /** Rotate handler (defaults to the real server action; overridable in tests). */
@@ -37,6 +39,7 @@ export function Developer({
   apiKey,
   defaultWebhookUrl,
   defaultWebhookSecret,
+  defaultWebhookActive = true,
   deliveries,
   onRotate = rotateApiKeyAction,
   onSaveWebhook = async (payload: WebhookPayload) => {
@@ -69,6 +72,7 @@ export function Developer({
         <WebhookCard
           defaultUrl={defaultWebhookUrl}
           defaultSecret={defaultWebhookSecret}
+          defaultActive={defaultWebhookActive}
           deliveries={deliveries}
           onSave={onSaveWebhook}
         />
