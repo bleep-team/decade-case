@@ -1,4 +1,4 @@
-export { createExchangeMcpServer, registerExchangeTools } from './server.js'
+export { createExchangeMcpServer, registerExchangeTools, EXCHANGE_INSTRUCTIONS } from './server.js'
 export type { ExchangeToolBackend, ToolResult } from './server.js'
 export { submitOrderShape, orderIdShape, symbolShape, bookShape, balanceShape } from './schemas.js'
 export type { SubmitOrderArgs, OrderIdArgs, SymbolArgs, BookArgs } from './schemas.js'

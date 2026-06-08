@@ -1,5 +1,5 @@
 import { createMcpHandler, withMcpAuth } from 'mcp-handler'
-import { registerExchangeTools } from '@decade/mcp'
+import { EXCHANGE_INSTRUCTIONS, registerExchangeTools } from '@decade/mcp'
 import { verifyClerkToken } from '@clerk/mcp-tools/next'
 import { auth } from '@clerk/nextjs/server'
 import { getDb } from '@decade/exchange-runtime'
@@ -12,7 +12,10 @@ import { createServiceBackend } from '@/lib/mcp/backend'
 // the broker resolved from the caller's identity.
 const handler = createMcpHandler(
   (server) => registerExchangeTools(server, createServiceBackend(getDb())),
-  { serverInfo: { name: 'decade-exchange', version: '0.0.1' } },
+  {
+    serverInfo: { name: 'decade-exchange', version: '0.0.1' },
+    instructions: EXCHANGE_INSTRUCTIONS,
+  },
   { basePath: '/api', maxDuration: 60 },
 )
 

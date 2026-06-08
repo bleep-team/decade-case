@@ -35,6 +35,21 @@ export interface ExchangeToolBackend {
   getBrokerBalance(identity: McpIdentity): Promise<ToolResult>
 }
 
+/**
+ * Connection-level framing handed to MCP clients. Decade is an engineering-case
+ * *simulation*: virtual play-money balances, a fictional market maker for
+ * liquidity, and no link to real securities, funds, or markets. Stating this up
+ * front lets an assistant place demo orders without mistaking them for real,
+ * irreversible financial trades.
+ */
+export const EXCHANGE_INSTRUCTIONS =
+  'Decade is a simulated stock exchange for engineering demos and education. ' +
+  'All balances are virtual play money, liquidity comes from a fictional market ' +
+  'maker, and no order touches real securities, real funds, or any real market. ' +
+  'Treat placing or cancelling orders here as a sandbox simulation, never a real ' +
+  'financial transaction. Each connected user acts as their own broker, funded ' +
+  'with a virtual starting balance.'
+
 function asContent(result: ToolResult) {
   return {
     content: [
@@ -56,7 +71,10 @@ function asContent(result: ToolResult) {
 export function registerExchangeTools(server: McpServer, backend: ExchangeToolBackend): void {
   server.tool(
     'submit_order',
-    'Submit a bid (buy) or ask (sell) order on behalf of a customer, acting as the authenticated broker',
+    'Submit a bid (buy) or ask (sell) order on the Decade demo exchange — a ' +
+      'simulated, educational paper-trading venue with virtual play-money balances ' +
+      'and fictional liquidity. No real securities, funds, or market access are ' +
+      'involved. Acts as the authenticated broker, placing the order on its behalf.',
     submitOrderShape,
     async (args, extra: ToolAuthExtra) =>
       asContent(await backend.submitOrder(identityFromExtra(extra), args)),
@@ -64,7 +82,7 @@ export function registerExchangeTools(server: McpServer, backend: ExchangeToolBa
 
   server.tool(
     'get_order',
-    'Get the status of an order by its id',
+    'Get the status of an order by its id on the Decade demo exchange (simulated paper trading)',
     orderIdShape,
     async (args, extra: ToolAuthExtra) =>
       asContent(await backend.getOrder(identityFromExtra(extra), args)),
@@ -72,7 +90,7 @@ export function registerExchangeTools(server: McpServer, backend: ExchangeToolBa
 
   server.tool(
     'get_order_book',
-    'List the top of the order book (best bids/asks) for a symbol',
+    'List the top of the order book (best bids/asks) for a symbol on the Decade demo exchange (simulated paper trading)',
     bookShape,
     async (args, extra: ToolAuthExtra) =>
       asContent(await backend.getOrderBook(identityFromExtra(extra), args)),
@@ -80,7 +98,7 @@ export function registerExchangeTools(server: McpServer, backend: ExchangeToolBa
 
   server.tool(
     'get_price',
-    'Get the current (order-book midpoint) price for a symbol',
+    'Get the current (order-book midpoint) price for a symbol on the Decade demo exchange (simulated paper trading)',
     symbolShape,
     async (args, extra: ToolAuthExtra) =>
       asContent(await backend.getPrice(identityFromExtra(extra), args)),
@@ -88,7 +106,7 @@ export function registerExchangeTools(server: McpServer, backend: ExchangeToolBa
 
   server.tool(
     'get_broker_balance',
-    'Get the cash balance and positions of the authenticated broker',
+    'Get the virtual cash balance and positions of the authenticated broker on the Decade demo exchange (simulated paper trading)',
     balanceShape,
     async (_args, extra: ToolAuthExtra) =>
       asContent(await backend.getBrokerBalance(identityFromExtra(extra))),
@@ -100,7 +118,10 @@ export function registerExchangeTools(server: McpServer, backend: ExchangeToolBa
  * behind a Streamable-HTTP transport at `/api/mcp` via `registerExchangeTools`.
  */
 export function createExchangeMcpServer(backend: ExchangeToolBackend): McpServer {
-  const server = new McpServer({ name: 'decade-exchange', version: '0.0.1' })
+  const server = new McpServer(
+    { name: 'decade-exchange', version: '0.0.1' },
+    { instructions: EXCHANGE_INSTRUCTIONS },
+  )
   registerExchangeTools(server, backend)
   return server
 }
