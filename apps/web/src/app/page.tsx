@@ -57,7 +57,7 @@ function SiteHeader() {
             </a>
           ))}
         </div>
-        <Link href="/sign-up">
+        <Link href="/sign-in">
           <Button size="lg" className="rounded-full">
             Get Started
           </Button>
@@ -102,7 +102,7 @@ function Hero() {
                 'radial-gradient(50% 60% at 50% 50%, rgba(240,168,104,0.14), transparent 70%)',
             }}
           />
-          <Link href="/sign-up">
+          <Link href="/sign-in">
             <Button size="lg" className="rounded-full">
               Create a Broker Account
             </Button>
@@ -199,7 +199,7 @@ function CodeFeatures() {
               ))}
             </ul>
             <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Link href="/sign-up">
+              <Link href="/sign-in">
                 <Button size="lg" className="rounded-full">
                   Create a Broker Account
                 </Button>
