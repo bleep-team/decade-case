@@ -25,6 +25,18 @@ describe('GET /.well-known/oauth-protected-resource/mcp', () => {
     expect(body.scopes_supported).toEqual(['profile', 'email'])
   })
 
+  it('advertises the public resource from the forwarded host (behind a proxy/tunnel)', async () => {
+    const { GET } = await import('./route.js')
+    const response = GET(
+      new Request('http://localhost:3000/.well-known/oauth-protected-resource/mcp', {
+        headers: { 'x-forwarded-host': 'tunnel.trycloudflare.com', 'x-forwarded-proto': 'https' },
+      }),
+    )
+
+    const body = await response.json()
+    expect(body.resource).toBe('https://tunnel.trycloudflare.com')
+  })
+
   it('answers the CORS preflight (OPTIONS) with 200 + CORS headers', async () => {
     const { OPTIONS } = await import('./route.js')
     const response = OPTIONS()
