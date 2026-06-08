@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@clerk/mcp-tools": "^0.5.0",
     "@clerk/nextjs": "^6.0.0",
     "@decade/auth": "workspace:*",
     "@decade/db": "workspace:*",

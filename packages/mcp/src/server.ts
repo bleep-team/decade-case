@@ -1,37 +1,46 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { bookShape, brokerIdShape, orderIdShape, submitOrderShape, symbolShape } from './schemas.js'
+import {
+  balanceShape,
+  bookShape,
+  orderIdShape,
+  submitOrderShape,
+  symbolShape,
+  type BookArgs,
+  type OrderIdArgs,
+  type SubmitOrderArgs,
+  type SymbolArgs,
+} from './schemas.js'
+import { identityFromExtra, type McpIdentity, type ToolAuthExtra } from './identity.js'
 
-export interface ExchangeMcpConfig {
-  /** Base URL of the exchange REST API, e.g. https://decade.usebleep.com */
-  baseUrl: string
-  /** Optional bearer token forwarded to the REST API. */
-  apiKey?: string
-}
-
-interface ApiResult {
+/**
+ * Result of a backend call, in the shape the tool surface renders. `text` is the
+ * JSON body (or an error message); `ok` decides whether the tool reports an error.
+ */
+export interface ToolResult {
   ok: boolean
-  status: number
+  status?: number
   text: string
 }
 
-function createRequester(config: ExchangeMcpConfig) {
-  return async function request(path: string, init?: RequestInit): Promise<ApiResult> {
-    const headers = new Headers(init?.headers)
-    headers.set('content-type', 'application/json')
-    if (config.apiKey) {
-      headers.set('authorization', `Bearer ${config.apiKey}`)
-    }
-    const response = await fetch(new URL(path, config.baseUrl), { ...init, headers })
-    return { ok: response.ok, status: response.status, text: await response.text() }
-  }
+/**
+ * The broker-scoped operations the MCP tools expose. The host app supplies an
+ * implementation that resolves the broker from `identity` and calls the shared
+ * exchange service — so the tools stay transport-only and own no business logic.
+ */
+export interface ExchangeToolBackend {
+  submitOrder(identity: McpIdentity, args: SubmitOrderArgs): Promise<ToolResult>
+  getOrder(identity: McpIdentity, args: OrderIdArgs): Promise<ToolResult>
+  getOrderBook(identity: McpIdentity, args: BookArgs): Promise<ToolResult>
+  getPrice(identity: McpIdentity, args: SymbolArgs): Promise<ToolResult>
+  getBrokerBalance(identity: McpIdentity): Promise<ToolResult>
 }
 
-function asContent(result: ApiResult) {
+function asContent(result: ToolResult) {
   return {
     content: [
       {
         type: 'text' as const,
-        text: result.ok ? result.text : `Error ${result.status}: ${result.text}`,
+        text: result.ok ? result.text : `Error ${result.status ?? 500}: ${result.text}`,
       },
     ],
     isError: !result.ok,
@@ -39,57 +48,59 @@ function asContent(result: ApiResult) {
 }
 
 /**
- * Register the exchange tools on an MCP server. Shared by `createExchangeMcpServer`
- * (standalone) and the app's `/api/mcp` Streamable-HTTP transport, so both expose
- * exactly the same tool surface over the REST API.
+ * Register the exchange tools on an MCP server, dispatching each to `backend`.
+ * Every tool distils the caller's identity from `extra` (OAuth user or forwarded
+ * API key) and hands it to the backend, which acts as that broker — the tool
+ * arguments never name the broker.
  */
-export function registerExchangeTools(server: McpServer, config: ExchangeMcpConfig): void {
-  const request = createRequester(config)
-
+export function registerExchangeTools(server: McpServer, backend: ExchangeToolBackend): void {
   server.tool(
     'submit_order',
-    'Submit a bid (buy) or ask (sell) order on behalf of a customer',
+    'Submit a bid (buy) or ask (sell) order on behalf of a customer, acting as the authenticated broker',
     submitOrderShape,
-    async (args) =>
-      asContent(await request('/api/orders', { method: 'POST', body: JSON.stringify(args) })),
+    async (args, extra: ToolAuthExtra) =>
+      asContent(await backend.submitOrder(identityFromExtra(extra), args)),
   )
 
   server.tool(
     'get_order',
     'Get the status of an order by its id',
     orderIdShape,
-    async ({ orderId }) => asContent(await request(`/api/orders/${orderId}`)),
+    async (args, extra: ToolAuthExtra) =>
+      asContent(await backend.getOrder(identityFromExtra(extra), args)),
   )
 
   server.tool(
     'get_order_book',
     'List the top of the order book (best bids/asks) for a symbol',
     bookShape,
-    async ({ symbol, depth }) =>
-      asContent(await request(`/api/stocks/${symbol}/book?depth=${depth}`)),
+    async (args, extra: ToolAuthExtra) =>
+      asContent(await backend.getOrderBook(identityFromExtra(extra), args)),
   )
 
   server.tool(
     'get_price',
-    'Get the current (moving-average) price for a symbol',
+    'Get the current (order-book midpoint) price for a symbol',
     symbolShape,
-    async ({ symbol }) => asContent(await request(`/api/stocks/${symbol}/price`)),
+    async (args, extra: ToolAuthExtra) =>
+      asContent(await backend.getPrice(identityFromExtra(extra), args)),
   )
 
   server.tool(
     'get_broker_balance',
-    'Get the cash balance of a broker',
-    brokerIdShape,
-    async ({ brokerId }) => asContent(await request(`/api/brokers/${brokerId}/balance`)),
+    'Get the cash balance and positions of the authenticated broker',
+    balanceShape,
+    async (_args, extra: ToolAuthExtra) =>
+      asContent(await backend.getBrokerBalance(identityFromExtra(extra))),
   )
 }
 
 /**
- * Build a standalone MCP server wired to the exchange REST API. The app mounts the
- * same tools behind a Streamable-HTTP transport at `/api/mcp` via `registerExchangeTools`.
+ * Build a standalone MCP server wired to `backend`. The app mounts the same tools
+ * behind a Streamable-HTTP transport at `/api/mcp` via `registerExchangeTools`.
  */
-export function createExchangeMcpServer(config: ExchangeMcpConfig): McpServer {
+export function createExchangeMcpServer(backend: ExchangeToolBackend): McpServer {
   const server = new McpServer({ name: 'decade-exchange', version: '0.0.1' })
-  registerExchangeTools(server, config)
+  registerExchangeTools(server, backend)
   return server
 }

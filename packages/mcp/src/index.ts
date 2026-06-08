@@ -1,3 +1,6 @@
 export { createExchangeMcpServer, registerExchangeTools } from './server.js'
-export type { ExchangeMcpConfig } from './server.js'
-export { submitOrderShape, orderIdShape, symbolShape, bookShape, brokerIdShape } from './schemas.js'
+export type { ExchangeToolBackend, ToolResult } from './server.js'
+export { submitOrderShape, orderIdShape, symbolShape, bookShape, balanceShape } from './schemas.js'
+export type { SubmitOrderArgs, OrderIdArgs, SymbolArgs, BookArgs } from './schemas.js'
+export { identityFromExtra, bearerFromExtra, userIdFromExtra } from './identity.js'
+export type { McpIdentity, ToolAuthExtra } from './identity.js'
