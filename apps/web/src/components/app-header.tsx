@@ -110,8 +110,8 @@ export function AppHeader({ onReset = defaultReset }: AppHeaderProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Reset the demo?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will cancel your open orders and restore your starting balance. This cannot be
-              undone.
+              This cancels your open orders, clears your positions, and restores your starting
+              balance. Your trade history is kept. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

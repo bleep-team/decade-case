@@ -43,7 +43,7 @@ describe('AppHeader', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /reset demo/i }))
     expect(screen.getByRole('alertdialog')).not.toBeNull()
-    expect(screen.getByText(/cancel your open orders/i)).not.toBeNull()
+    expect(screen.getByText(/trade history is kept/i)).not.toBeNull()
   })
 
   it('runs the reset only after confirmation', () => {
