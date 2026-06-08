@@ -119,6 +119,11 @@ pnpm dev:inngest                              # Inngest dev server (separate she
 | `POST` | `/api/inngest`              | Inngest function endpoint                                                  |
 | `*`    | `/api/mcp`                  | MCP server (Streamable HTTP) — exchange tools; Clerk OAuth or API-key auth |
 
+The acting broker is always taken from the authenticated identity (Clerk session
+or API key). A `brokerId` may be included on a submitted order (the case lists it
+as an order field), but it is only validated to match that identity — a
+mismatch is rejected with `403`; it can never be used to act as another broker.
+
 ## Documentation
 
 See [`docs/`](docs/README.md): the [architecture overview](docs/architecture/overview.md),

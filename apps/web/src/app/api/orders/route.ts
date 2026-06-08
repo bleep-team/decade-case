@@ -64,6 +64,17 @@ export async function POST(request: Request) {
     return broker
   }
 
+  // The case lists a broker identifier as an order field. We accept it, but only
+  // to confirm the broker is submitting as itself — a `brokerId` that disagrees
+  // with the authenticated identity is rejected, never honoured. Omitting it is
+  // fine; the acting broker is the identity's regardless.
+  if (parsed.data.brokerId && parsed.data.brokerId !== broker.id) {
+    return NextResponse.json(
+      { error: 'broker_mismatch', message: 'brokerId does not match the authenticated broker' },
+      { status: 403 },
+    )
+  }
+
   // Insert + buying-power check + matcher hand-off live in the shared service,
   // so this route and the MCP `submit_order` tool behave identically.
   const { orderId, status } = await createOrder(getDb(), broker, parsed.data)

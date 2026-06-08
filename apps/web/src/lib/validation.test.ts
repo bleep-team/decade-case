@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { submitOrderSchema } from './validation'
 
+const BROKER_ID = '00000000-0000-0000-0000-0000000000a1'
+
 const validLimit = {
-  brokerId: 'brk_1',
+  brokerId: BROKER_ID,
   ownerDocument: 'doc_1',
   symbol: 'AAPL',
   side: 'bid' as const,
@@ -23,7 +25,7 @@ describe('submitOrderSchema', () => {
 
   it('accepts a market order without a price', () => {
     const result = submitOrderSchema.safeParse({
-      brokerId: 'brk_1',
+      brokerId: BROKER_ID,
       ownerDocument: 'doc_1',
       symbol: 'AAPL',
       side: 'ask',
@@ -31,6 +33,11 @@ describe('submitOrderSchema', () => {
       quantity: 100,
     })
     expect(result.success).toBe(true)
+  })
+
+  it('accepts an order with no brokerId (it is optional)', () => {
+    const { brokerId: _omit, ...noBroker } = validLimit
+    expect(submitOrderSchema.safeParse(noBroker).success).toBe(true)
   })
 
   it('rejects a market order that carries a price', () => {
